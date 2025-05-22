@@ -1,0 +1,244 @@
+{
+  "info": {
+    "name": "TripSync Phase 1",
+    "_postman_id": "tripsync-phase1",
+    "description": "Tests for TripSync backend Phase 1: authentication, user, driver, and location services.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"test@example.com\",\"password\":\"secure123\",\"firstName\":\"John\",\"lastName\":\"Doe\",\"phone\":\"1234567890\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register Driver",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"driver@example.com\",\"password\":\"secure123\",\"firstName\":\"Jane\",\"lastName\":\"Smith\",\"phone\":\"0987654321\",\"driversLicense\":\"DL123456\",\"nationalId\":\"NI123456\",\"registrationPic\":\"https://example.com/reg.jpg\",\"driverPic\":\"https://example.com/driver.jpg\",\"licenseExpiryDate\":\"2026-05-20T00:00:00.000Z\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/driver/register",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "driver", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const response = pm.response.json();",
+              "pm.environment.set(\"jwt_token\", response.token);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"test@example.com\",\"password\":\"secure123\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/profile",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "profile"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update User Profile",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"firstName\":\"Johnny\",\"phone\":\"9876543210\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users/profile",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "profile"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add Favorite Location",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"latitude\":40.7128,\"longitude\":-74.0060,\"address\":\"123 Main St\",\"city\":\"New York\",\"country\":\"USA\",\"label\":\"Home\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users/favorite-locations",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "favorite-locations"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Driver Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/drivers/profile",
+          "host": ["{{base_url}}"],
+          "path": ["api", "drivers", "profile"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Driver Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"currentStatus\":\"ONLINE\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/drivers/status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "drivers", "status"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Geocode Address",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"address\":\"350 5th Ave, New York, NY 10118\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/locations/geocode",
+          "host": ["{{base_url}}"],
+          "path": ["api", "locations", "geocode"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

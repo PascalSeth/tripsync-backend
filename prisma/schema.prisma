@@ -1,0 +1,884 @@
+// TripSync - Complete Optimized Schema
+// Transportation service platform with integrated recommendation system
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ===== CORE USER MODELS =====
+
+model User {
+  id                 String               @id @default(uuid())
+  email              String               @unique
+  password           String
+  firstName          String
+  lastName           String
+  phone              String               @unique
+  profileImage       String?
+  address            String?
+  dateOfBirth        DateTime?
+  gender             Gender?
+  emergencyContact   String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  isActive           Boolean              @default(true)
+  isVerified         Boolean              @default(false)
+  verificationToken  String?
+  resetPasswordToken String?
+  
+  // User relationships
+  driver             DriverProfile?       // If user is also a driver
+  services           Service[]
+  payments           Payment[]
+  reviews            Review[]             // Reviews given by user
+  receivedReviews    DriverToUserReview[] // Reviews received from drivers
+  favoriteLocations  FavoriteLocation[]
+  notifications      Notification[]
+  reports            Report[]             // Reports filed by user
+  
+  // Place recommendation relationships
+  placeSurveys       Survey[]
+  placeVotes         PlaceVote[]
+  preferenceInsights UserPreferenceInsight[]
+
+  @@map("users")
+}
+
+model AnonymousUser {
+  id              String        @id @default(uuid())
+  name            String
+  gender          Gender?
+  createdAt       DateTime      @default(now())
+  
+  // Relations
+  placeSurveys    Survey[]
+  placeVotes      PlaceVote[]  // Votes cast by this anonymous user
+  preferenceInsights UserPreferenceInsight[]
+  
+  @@map("anonymous_users")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+model DriverProfile {
+  id                   String             @id @default(uuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  driversLicense       String
+  dayBookingPrice    Float?            // Driver-set price per day
+  nationalId           String
+  registrationPic      String
+  driverPic            String
+  licenseExpiryDate    DateTime
+  vehicleId            String?
+  vehicle              Vehicle?           @relation(fields: [vehicleId], references: [id])
+  rating               Float              @default(0)
+  totalTrips           Int                @default(0)
+  currentStatus        DriverStatus       @default(OFFLINE)
+  approvalStatus       ApprovalStatus     @default(PENDING)
+  backgroundCheckDate  DateTime?
+  insuranceInfo        String?
+  currentLocationId    String?
+  currentLocation      Location?          @relation(fields: [currentLocationId], references: [id])
+  isAvailableForDayBooking Boolean        @default(false)
+  isTaxiDriver         Boolean            @default(false)
+    driverAvailability DriverAvailability[]
+  driverDistricts    DriverDistrict[]
+  // Driver relationships
+  services             Service[]
+  assignedDriverTypes  AssignedDriverType[]
+  taxis                Taxi[]
+  reviewsGiven         DriverToUserReview[] // Reviews given to users
+  reportsAgainst       Report[]             // Reports against this driver
+
+  @@map("driver_profiles")
+}
+
+enum DriverStatus {
+  ONLINE
+  OFFLINE
+  ON_TRIP
+  BREAK
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model AssignedDriverType {
+  id              String        @id @default(uuid())
+  driverProfileId String
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  serviceTypeId   String
+  serviceType     ServiceType   @relation(fields: [serviceTypeId], references: [id])
+  isActive        Boolean       @default(true)
+  
+  @@unique([driverProfileId, serviceTypeId])
+  @@map("assigned_driver_types")
+}
+
+// ===== VEHICLE MODELS =====
+
+model Vehicle {
+  id                  String         @id @default(uuid())
+  registrationNumber  String         @unique
+  make                String
+  model               String
+  year                Int
+  color               String
+  seats               Int
+  vehicleTypeId       String
+  vehicleType         VehicleType    @relation(fields: [vehicleTypeId], references: [id])
+  insuranceNumber     String
+  insuranceExpiryDate DateTime
+  inspectionDate      DateTime
+  photos              String[]
+  isActive            Boolean        @default(true)
+  
+  driverProfiles      DriverProfile[]
+  
+  @@map("vehicles")
+}
+
+model VehicleType {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  
+  vehicles    Vehicle[]
+  
+  @@map("vehicle_types")
+}
+
+// ===== TAXI MODELS =====
+
+model Taxi {
+  id                  String        @id @default(uuid())
+  registrationNumber  String        @unique
+  taxiTypeId          String
+  taxiType            ServiceType   @relation(fields: [taxiTypeId], references: [id])
+  driverId            String?
+  driver              DriverProfile? @relation(fields: [driverId], references: [id])
+  hasMeter            Boolean       @default(true)
+  meterNumber         String?
+  licensePlate        String
+  maxPassengers       Int
+  isActive            Boolean       @default(true)
+  currentLocationId   String?
+  currentLocation     Location?     @relation("CurrentTaxiLocation", fields: [currentLocationId], references: [id])
+  
+  services            Service[]
+  
+  @@map("taxis")
+}
+
+model TaxiStand {
+  id          String    @id @default(uuid())
+  name        String
+  locationId  String
+  location    Location  @relation(fields: [locationId], references: [id])
+  capacity    Int
+  isActive    Boolean   @default(true)
+  
+  @@map("taxi_stands")
+}
+
+model TaxiZone {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  boundaries  String?     // GeoJSON polygon data
+  basePrice   Float       // Base fare for this zone
+  
+  originTaxis     Service[] @relation("OriginTaxiZone")
+  destinationTaxis Service[] @relation("DestinationTaxiZone")
+  
+  @@map("taxi_zones")
+}
+
+// ===== LOCATION MODELS =====
+
+model Location {
+  id              String            @id @default(uuid())
+  latitude        Float
+  longitude       Float
+  address         String
+  city            String
+  state           String?
+  country         String
+  postalCode      String?
+  placeId         String?           // Google Maps Place ID or similar
+  
+  // Location relationships
+  pickupServices   Service[]        @relation("PickupLocation")
+  dropoffServices  Service[]        @relation("DropoffLocation")
+  favoriteLocations FavoriteLocation[]
+  currentDrivers   DriverProfile[]
+  stores           Store[]
+  routeOrigins     Route[]          @relation("RouteOrigin")
+  routeDestinations Route[]         @relation("RouteDestination")
+  taxiStands       TaxiStand[]
+  currentTaxis     Taxi[]           @relation("CurrentTaxiLocation")
+  places           Place[]          // Places at this location
+  
+  @@map("locations")
+  MovingCompany MovingCompany[]
+}
+
+model FavoriteLocation {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location  @relation(fields: [locationId], references: [id])
+  label       String    // Home, Work, etc.
+  isDefault   Boolean   @default(false)
+  
+  @@unique([userId, label])
+  @@map("favorite_locations")
+}
+
+model Route {
+  id                String           @id @default(uuid())
+  originLocationId  String
+  originLocation    Location         @relation("RouteOrigin", fields: [originLocationId], references: [id])
+  destinationLocationId String
+  destinationLocation Location       @relation("RouteDestination", fields: [destinationLocationId], references: [id])
+  distance          Float
+  estimatedTime     Int              // In minutes
+  polyline          String           // Encoded polyline for the route
+  
+  sharedRideGroups  SharedRideGroup[]
+  
+  @@map("routes")
+}
+
+model Region {
+  id          String      @id @default(uuid())
+  name        String
+  type        RegionType
+  parentId    String?
+  parent      Region?     @relation("RegionHierarchy", fields: [parentId], references: [id])
+  children    Region[]    @relation("RegionHierarchy")
+  code        String?
+  
+  districts   District[]  @relation("RegionDistrict")
+  
+  @@unique([name, type, parentId])
+  @@map("regions")
+}
+
+enum RegionType {
+  COUNTRY
+  STATE
+  CITY
+  DISTRICT
+}
+
+model District {
+  id          String    @id @default(uuid())
+  name        String
+  regionId    String
+  region      Region    @relation("RegionDistrict", fields: [regionId], references: [id])
+  boundaries  String?   // GeoJSON polygon data
+    driverDistricts    DriverDistrict[]
+
+  dayBookings Service[] @relation("DistrictBooking")
+  
+  @@unique([name, regionId])
+  @@map("districts")
+}
+
+// ===== SERVICE MODELS =====
+
+model ServiceType {
+  id                String              @id @default(uuid())
+  name              String              @unique
+  category          ServiceCategory
+  description       String?
+  basePrice         Float
+  pricePerKm        Float?
+  pricePerMinute    Float?
+  pricePerHour      Float?
+  hasFixedRoutes    Boolean             @default(false)
+  maxCapacity       Int                 @default(1)
+  isActive          Boolean             @default(true)
+  
+  services          Service[]
+  assignedDrivers   AssignedDriverType[]
+  taxiServices      Taxi[]
+  
+  @@map("service_types")
+}
+
+enum ServiceCategory {
+  RIDE           // Standard ride service
+  TAXI           // Taxi service
+  DAY_BOOKING    // Day booking service
+  STORE_DELIVERY // Store/package delivery
+  HOUSE_MOVING   // House moving service
+  EMERGENCY      // Emergency service
+  SHARED_RIDE    // Shared ride service
+}
+
+model Service {
+  id                    String            @id @default(uuid())
+  userId                String
+  user                  User              @relation(fields: [userId], references: [id])
+  serviceTypeId         String
+  serviceType           ServiceType       @relation(fields: [serviceTypeId], references: [id])
+  driverId              String?
+  driver                DriverProfile?    @relation(fields: [driverId], references: [id])
+  placeId            String?           // Link to recommended place
+  place              Place?            @relation(fields: [placeId], references: [id])
+  // Common service fields
+  status                ServiceStatus     @default(REQUESTED)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  scheduledTime         DateTime?
+  completedTime         DateTime?
+  notes                 String?
+  estimatedPrice        Float?
+  finalPrice            Float?
+  
+  // Locations
+  pickupLocationId      String?
+  pickupLocation        Location?         @relation("PickupLocation", fields: [pickupLocationId], references: [id])
+  dropoffLocationId     String?
+  dropoffLocation       Location?         @relation("DropoffLocation", fields: [dropoffLocationId], references: [id])
+  
+  // Distance and duration details
+  estimatedDistance     Float?
+  actualDistance        Float?
+  estimatedDuration     Int?              // In minutes
+  actualDuration        Int?              // In minutes
+  
+  // Confirmation and completion details
+  confirmationMethod    ConfirmationMethod?
+  confirmationCode      String?           @unique
+  confirmedAt           DateTime?
+  
+  // Ride and Taxi specific
+  taxiId                String?
+  taxi                  Taxi?             @relation(fields: [taxiId], references: [id])
+  originZoneId          String?
+  originZone            TaxiZone?         @relation("OriginTaxiZone", fields: [originZoneId], references: [id])
+  destinationZoneId     String?
+  destinationZone       TaxiZone?         @relation("DestinationTaxiZone", fields: [destinationZoneId], references: [id])
+  isMetered             Boolean?
+  passengerCount        Int?
+  isSharingEnabled      Boolean?
+  maxSharedRiders       Int?
+  sharedRideGroupId     String?
+  sharedRideGroup       SharedRideGroup?  @relation(fields: [sharedRideGroupId], references: [id])
+  // Day Booking specific
+  districtId            String?
+  district              District?         @relation("DistrictBooking", fields: [districtId], references: [id])
+  startTime             DateTime?         // For day bookings
+  endTime               DateTime?         // For day bookings
+  
+  // Store Order specific
+  storeId               String?
+  store                 Store?            @relation(fields: [storeId], references: [id])
+  orderItems            OrderItem[]
+  
+  // House Moving specific
+  movingCompanyId       String?
+  movingCompany         MovingCompany?    @relation(fields: [movingCompanyId], references: [id])
+  vehicleSize           String?
+  trackingCode          String?           @unique
+  inventoryItems        MoveInventoryItem[]
+  
+  // Emergency specific
+  emergencyType         EmergencyType?
+  responderId           String?           // ID of emergency responder
+  
+  // Relationships
+  payment               Payment?
+  review                Review?           // Review from user
+  driverReview          DriverToUserReview? // Review from driver
+  reports               Report[]          // Reports related to this service
+  
+  @@map("services")
+}
+
+enum ServiceStatus {
+  REQUESTED
+  SCHEDULED
+  SEARCHING_DRIVER
+  DRIVER_ACCEPTED
+  DRIVER_ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  
+  // Store specific
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  
+  // Moving specific
+  CONFIRMED
+  LOADING
+  IN_TRANSIT
+  UNLOADING
+  
+  // Emergency specific
+  ACKNOWLEDGED
+  DISPATCHED
+  ARRIVED
+  RESOLVED
+}
+
+enum ConfirmationMethod {
+  QR_CODE
+  BUTTON
+  DRIVER_CONFIRMED
+  AUTOMATIC
+}
+
+enum EmergencyType {
+  POLICE
+  AMBULANCE
+  FIRE
+}
+
+model SharedRideGroup {
+  id              String        @id @default(uuid())
+  routeId         String
+  route           Route         @relation(fields: [routeId], references: [id])
+  maxCapacity     Int
+  currentCapacity Int           @default(0)
+  status          ServiceStatus @default(SEARCHING_DRIVER)
+  createdAt       DateTime      @default(now())
+  
+  services        Service[]
+  
+  @@map("shared_ride_groups")
+}
+model DriverAvailability {
+  id              String        @id @default(uuid())
+  driverProfileId String
+  driver          DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  date            DateTime
+  isAvailable     Boolean       @default(true)
+  
+  @@unique([driverProfileId, date])
+  @@map("driver_availability")
+}
+
+model DriverDistrict {
+  id              String        @id @default(uuid())
+  driverProfileId String
+  driver          DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+  districtId      String
+  district        District      @relation(fields: [districtId], references: [id])
+  customPrice     Float?        // Override default day booking price for this district
+  
+  @@unique([driverProfileId, districtId])
+  @@map("driver_districts")
+}
+// ===== STORE MODELS =====
+
+model Store {
+  id              String      @id @default(uuid())
+  name            String
+  type            StoreType
+  locationId      String
+  location        Location    @relation(fields: [locationId], references: [id])
+  contactPhone    String
+  contactEmail    String?
+  operatingHours  String      // JSON string with operating hours
+  description     String?
+  rating          Float       @default(0)
+  isActive        Boolean     @default(true)
+  
+  products        Product[]
+  orders          Service[]
+  
+  @@map("stores")
+}
+
+enum StoreType {
+  GROCERY
+  PHARMACY
+  RESTAURANT
+  RETAIL
+  ELECTRONICS
+  OTHER
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  storeId     String
+  store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float
+  category    String
+  image       String?
+  inStock     Boolean     @default(true)
+  
+  orderItems  OrderItem[]
+  
+  @@map("products")
+}
+
+model OrderItem {
+  id          String    @id @default(uuid())
+  serviceId   String
+  service     Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Float
+  specialRequest String?
+  
+  @@map("order_items")
+}
+
+// ===== HOUSE MOVING MODELS =====
+
+model MoveInventoryItem {
+  id          String    @id @default(uuid())
+  serviceId   String
+  service     Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  quantity    Int
+  specialHandling Boolean  @default(false)
+  specialInstructions String?
+  
+  @@map("move_inventory_items")
+}
+
+model MovingCompany {
+  id              String     @id @default(uuid())
+  name            String
+  contactPhone    String
+  contactEmail    String
+  website         String?
+  rating          Float      @default(0)
+  pricePerHour    Float
+  isActive        Boolean    @default(true)
+  
+  services        Service[]
+  currentLocationId String?
+  currentLocation   Location? @relation(fields: [currentLocationId], references: [id])
+  @@map("moving_companies")
+}
+
+// ===== PAYMENT SYSTEM =====
+
+model Payment {
+  id              String          @id @default(uuid())
+  serviceId       String          @unique
+  service         Service         @relation(fields: [serviceId], references: [id])
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  amount          Float
+  paymentMethod   PaymentMethod
+  status          PaymentStatus   @default(PENDING)
+  transactionId   String?         @unique
+  paymentDate     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  MOBILE_MONEY
+  BANK_TRANSFER
+  CASH
+  WALLET
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ===== FEEDBACK SYSTEM =====
+
+model Review {
+  id              String    @id @default(uuid())
+  serviceId       String    @unique
+  service         Service   @relation(fields: [serviceId], references: [id])
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  rating          Int       // 1-5 overall rating
+  driverRating    Int?      // 1-5 specifically for driver
+  vehicleRating   Int?      // 1-5 for vehicle condition
+  serviceRating   Int?      // 1-5 for overall service
+  comment         String?
+  createdAt       DateTime  @default(now())
+  
+  @@map("reviews")
+}
+
+model DriverToUserReview {
+  id              String    @id @default(uuid())
+  serviceId       String    @unique
+  service         Service   @relation(fields: [serviceId], references: [id])
+  driverId        String
+  driver          DriverProfile @relation(fields: [driverId], references: [id])
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  rating          Int       // 1-5
+  comment         String?
+  createdAt       DateTime  @default(now())
+  
+  @@map("driver_to_user_reviews")
+}
+
+// ===== REPORTING SYSTEM =====
+
+model Report {
+  id              String       @id @default(uuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  serviceId       String
+  service         Service      @relation(fields: [serviceId], references: [id])
+  reportType      ReportType
+  description     String
+  incidentDate    DateTime
+  status          ReportStatus @default(SUBMITTED)
+  responseMessage String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // The driver being reported (if applicable)
+  reportedDriverId String?
+  reportedDriver   DriverProfile? @relation(fields: [reportedDriverId], references: [id])
+  
+  // Attachments
+  attachments     Attachment[]
+  
+  @@map("reports")
+}
+
+enum ReportType {
+  SAFETY_CONCERN
+  INAPPROPRIATE_BEHAVIOR
+  DRIVER_MISCONDUCT
+  PAYMENT_ISSUE
+  DELIVERY_ISSUE
+  SERVICE_QUALITY
+  VEHICLE_CONDITION
+  OTHER
+}
+
+enum ReportStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+  ESCALATED
+}
+
+model Attachment {
+  id          String    @id @default(uuid())
+  reportId    String
+  report      Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fileUrl     String
+  fileType    String    // image/jpeg, image/png, application/pdf, etc.
+  uploadedAt  DateTime  @default(now())
+  
+  @@map("attachments")
+}
+
+// ===== NOTIFICATION SYSTEM =====
+
+model Notification {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  title       String
+  body        String
+  type        NotificationType
+  data        String?           // JSON data
+  isRead      Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  
+  @@map("notifications")
+}
+
+enum NotificationType {
+  SERVICE_UPDATE
+  PAYMENT
+  PROMOTION
+  SYSTEM
+  EMERGENCY
+  DRIVER_ASSIGNED
+  DELIVERY_UPDATE
+  PLACE_RECOMMENDATION
+}
+
+// ===== RECOMMENDED PLACE SYSTEM =====
+
+model Survey {
+  id              String        @id @default(uuid())
+  userId          String?       // Optional - for logged-in app users
+  user            User?         @relation(fields: [userId], references: [id])
+  anonymousUserId String?       // For web users who don't log in
+  anonymousUser   AnonymousUser? @relation(fields: [anonymousUserId], references: [id])
+  startedAt       DateTime      @default(now())
+  completedAt     DateTime?
+  status          SurveyStatus  @default(IN_PROGRESS)
+  lastCategoryId  String?       // Last category viewed in the survey
+  
+  // Relations
+  placeVotes      PlaceVote[]   // All votes cast in this survey
+  
+  @@map("place_surveys")
+}
+
+enum SurveyStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+model PlaceCategory {
+  id              String        @id @default(uuid())
+  name            String        @unique
+  description     String?
+  icon            String?       // Icon reference for the category
+  sortOrder       Int           @default(0)
+  isActive        Boolean       @default(true)
+  
+  // Relations
+  places          Place[]       // Places that belong to this category
+  userPreferences UserPreferenceInsight[]
+  
+  @@map("place_categories")
+}
+
+model Place {
+  id              String        @id @default(uuid())
+  name            String
+  description     String?
+  imageUrl        String?       // Featured image of the place
+  locationId      String?
+  location        Location?     @relation(fields: [locationId], references: [id])
+  categoryId      String
+  category        PlaceCategory @relation(fields: [categoryId], references: [id])
+  rating          Float?        // Average rating if available
+  priceLevel      PriceLevel?   // Price indicator
+  contactInfo     String?
+  websiteUrl      String?
+  openingHours    String?       // JSON string with opening hours
+  tags            String?       // Comma-separated tags
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isActive        Boolean       @default(true)
+  
+  // AI training and recommendation metrics
+  recommendationScore Float     @default(0)  // Computed score for recommendations
+  viewCount       Int           @default(0)  // How many times shown in surveys
+  
+  // Relations
+  placeVotes      PlaceVote[]   // Votes for this place
+  placeAttributes PlaceAttribute[] // Detailed attributes of this place
+  service         Service[]
+  @@map("places")
+}
+
+enum PriceLevel {
+  BUDGET
+  MODERATE
+  EXPENSIVE
+  LUXURY
+}
+
+model PlaceVote {
+  id              String        @id @default(uuid())
+  surveyId        String
+  survey          Survey        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  placeId         String
+  place           Place         @relation(fields: [placeId], references: [id])
+  isLiked         Boolean       // True = Yes/Like, False = No/Dislike
+  userId          String?       // Optional - for logged-in app users
+  user            User?         @relation(fields: [userId], references: [id])
+  anonymousUserId String?       // For web users
+  anonymousUser   AnonymousUser? @relation(fields: [anonymousUserId], references: [id])
+  createdAt       DateTime      @default(now())
+  
+  @@unique([surveyId, placeId, userId])
+  @@unique([surveyId, placeId, anonymousUserId])
+  @@map("place_votes")
+}
+
+model PlaceAttribute {
+  id              String        @id @default(uuid())
+  placeId         String
+  place           Place         @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  key             String        // Attribute name (e.g., "cuisine", "amenities")
+  value           String        // Attribute value (e.g., "Italian", "Free WiFi")
+  
+  @@unique([placeId, key, value])
+  @@map("place_attributes")
+}
+
+model UserPreferenceInsight {
+  id              String        @id @default(uuid())
+  userId          String?       // Optional - for logged-in app users
+  user            User?         @relation(fields: [userId], references: [id])
+  anonymousUserId String?       // For web users
+  anonymousUser   AnonymousUser? @relation(fields: [anonymousUserId], references: [id])
+  categoryId      String
+  category        PlaceCategory @relation(fields: [categoryId], references: [id])
+  preferenceData  String        // JSON string with derived preferences
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([userId, categoryId])
+  @@unique([anonymousUserId, categoryId])
+  @@map("user_preference_insights")
+}
+
+model RecommendationModel {
+  id              String        @id @default(uuid())
+  name            String        @unique
+  version         String
+  description     String?
+  parameters      String        // JSON string with model parameters
+  lastTrainedAt   DateTime?
+  accuracy        Float?        // Measured accuracy of the model
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@map("recommendation_models")
+}
+
+// ===== SYSTEM CONFIGURATION =====
+
+model SystemConfig {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  value       String
+  description String?
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("system_configs")
+}
