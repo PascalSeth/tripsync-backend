@@ -14,9 +14,9 @@ import userRoutes from "./users"
 import notificationRoutes from "./notifications"
 import locationRoutes from "./locations"
 import anonymousRoutes from "./anonymous"
-
+import authRoute from "./auth"
 const router = Router()
-
+router.use("/auth",authRoute)
 router.use("/dashboard", dashboardRoutes)
 router.use("/vehicles", vehicleRoutes)
 router.use("/service-types", serviceTypeRoutes)
