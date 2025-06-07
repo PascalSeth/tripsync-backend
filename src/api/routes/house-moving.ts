@@ -1,29 +1,23 @@
+//house-moving.ts
 import { Router } from "express"
 import {
+  createMovingCompany,
   getMovingCompanies,
-  estimateMovingCost,
-  bookMovingService,
-  getMovingServiceDetails,
-  updateInventoryItems,
-  trackMovingService,
-  updateMovingStatus,
-  cancelMovingService,
-} from "../controllers/houseMovingController"
+  getMovingCompany,
+  updateMovingCompany,
+  deleteMovingCompany,
+  getMovingCompanyAnalytics,
+} from "../controllers/movingCompanyController"
 import { requireAuth } from "@clerk/express"
-import { driverOnly } from "../controllers/serviceController"
 
 const router = Router()
 
-// User routes
-router.get("/companies", getMovingCompanies)
-router.post("/estimate", requireAuth(), estimateMovingCost)
-router.post("/book", requireAuth(), bookMovingService)
-router.get("/:id", requireAuth(), getMovingServiceDetails)
-router.post("/:id/inventory", requireAuth(), updateInventoryItems)
-router.get("/:id/track", requireAuth(), trackMovingService)
-router.post("/:id/cancel", requireAuth(), cancelMovingService)
-
-// Driver/Company routes
-router.put("/:id/status", requireAuth(), driverOnly, updateMovingStatus)
+// Moving Company Routes
+router.post("/companies", requireAuth(), createMovingCompany)
+router.get("/companies", requireAuth(), getMovingCompanies)
+router.get("/companies/:id", requireAuth(), getMovingCompany)
+router.get("/companies/:id/analytics", requireAuth(), getMovingCompanyAnalytics)
+router.put("/companies/:id", requireAuth(), updateMovingCompany)
+router.delete("/companies/:id", requireAuth(), deleteMovingCompany)
 
 export default router

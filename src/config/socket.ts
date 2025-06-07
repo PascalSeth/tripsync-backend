@@ -1,3 +1,4 @@
+//socket.ts
 import { Server } from "socket.io"
 import { prisma } from "./prisma"
 

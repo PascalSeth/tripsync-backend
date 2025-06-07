@@ -1,3 +1,4 @@
+//payments.ts
 import { Router } from "express"
 import { initializePayment, verifyPayment } from "../controllers/paymentController"
 import { requireAuth } from "@clerk/express"

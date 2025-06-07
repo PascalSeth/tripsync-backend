@@ -1,28 +1,35 @@
+//stores.ts
 import { Router } from "express"
 import {
   createStore,
+  getStores,
+  getStore,
   updateStore,
-  getStoreDetails,
-  listStores,
-  addProduct,
+  deleteStore,
+  createProduct,
+  getProducts,
+  getProductCategories,
+  getProduct,
   updateProduct,
-  listProducts,
-  getProductDetails,
+  deleteProduct,
 } from "../controllers/storeController"
 import { requireAuth } from "@clerk/express"
 
 const router = Router()
 
-// Store management
+// Store Routes
 router.post("/", requireAuth(), createStore)
+router.get("/", requireAuth(), getStores)
+router.get("/:id", requireAuth(), getStore)
 router.put("/:id", requireAuth(), updateStore)
-router.get("/:id", getStoreDetails)
-router.get("/", listStores)
+router.delete("/:id", requireAuth(), deleteStore)
 
-// Product management
-router.post("/:storeId/products", requireAuth(), addProduct)
-router.put("/:storeId/products/:id", requireAuth(), updateProduct)
-router.get("/:storeId/products", listProducts)
-router.get("/:storeId/products/:id", getProductDetails)
+// Product Routes
+router.post("/products", requireAuth(), createProduct)
+router.get("/products", requireAuth(), getProducts)
+router.get("/product-categories", requireAuth(), getProductCategories)
+router.get("/products/:id", requireAuth(), getProduct)
+router.put("/products/:id", requireAuth(), updateProduct)
+router.delete("/products/:id", requireAuth(), deleteProduct)
 
 export default router

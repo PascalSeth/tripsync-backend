@@ -1,46 +1,21 @@
-import { Router, type Response } from "express"
-import { asyncHandler } from "../middlewares/asyncHandler"
-import { authMiddleware, type AuthRequest } from "../middlewares/authMiddleware"
+//users.ts
+import { Router } from "express"
 import {
-  getProfile,
-  updateProfile,
-  addFavoriteLocation,
-  updateProfileSchema,
-  favoriteLocationSchema,
+  getUsers,
+  getUser,
+  updateUserStatus,
+  updateUserVerification,
+  getUserAnalytics,
 } from "../controllers/userController"
+import { requireAuth } from "@clerk/express"
 
 const router = Router()
 
-router.get(
-  "/profile",
-  authMiddleware,
-  asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user!.userId // Assert req.user is defined
-    const user = await getProfile(userId)
-    res.json(user)
-  }),
-)
-
-router.put(
-  "/profile",
-  authMiddleware,
-  asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user!.userId // Assert req.user is defined
-    const data = updateProfileSchema.parse(req.body)
-    const user = await updateProfile(userId, data)
-    res.json(user)
-  }),
-)
-
-router.post(
-  "/favorite-locations",
-  authMiddleware,
-  asyncHandler(async (req: AuthRequest, res: Response) => {
-    const userId = req.user!.userId // Assert req.user is defined
-    const data = favoriteLocationSchema.parse(req.body)
-    const favoriteLocation = await addFavoriteLocation(userId, data)
-    res.status(201).json(favoriteLocation)
-  }),
-)
+// Admin User Routes
+router.get("/admin/users", requireAuth(), getUsers)
+router.get("/admin/users/:id", requireAuth(), getUser)
+router.put("/admin/users/:id/status", requireAuth(), updateUserStatus)
+router.put("/admin/users/:id/verification", requireAuth(), updateUserVerification)
+router.get("/admin/users/:id/analytics", requireAuth(), getUserAnalytics)
 
 export default router
