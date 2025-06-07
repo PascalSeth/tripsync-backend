@@ -298,15 +298,17 @@ export const bookSharedRide = async (req: Request, res: Response) => {
     })
 
     // Create payment
-    await prisma.payment.create({
-      data: {
-        serviceId: service.id,
-        userId,
-        amount: finalPrice,
-        paymentMethod: "CASH", // Default to cash
-        status: "PENDING",
-      },
-    })
+// Create payment
+await prisma.payment.create({
+  data: {
+    serviceId: service.id,
+    userId,
+    amount: finalPrice,
+    platformFee: finalPrice * (service.serviceType.commissionRate || 0.18), // Use commissionRate from serviceType
+    paymentMethod: "CASH",
+    status: "PENDING",
+  },
+});
 
     // If new group, try to find a driver
     if (isNewGroup) {

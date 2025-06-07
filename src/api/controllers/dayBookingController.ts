@@ -308,12 +308,12 @@ export const setDriverSchedule = async (req: Request, res: Response) => {
 // Book a driver for a day
 export const bookDriverForDay = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).auth?.userId
-    const data = bookDriverSchema.parse(req.body)
-    const bookingDate = new Date(data.date)
+    const userId = (req as any).auth?.userId;
+    const data = bookDriverSchema.parse(req.body);
+    const bookingDate = new Date(data.date);
 
     // Format date to YYYY-MM-DD for comparison
-    const formattedDate = bookingDate.toISOString().split("T")[0]
+    const formattedDate = bookingDate.toISOString().split("T")[0];
 
     // Check if driver is available
     const driver = await prisma.driverProfile.findUnique({
@@ -359,26 +359,26 @@ export const bookDriverForDay = async (req: Request, res: Response) => {
           },
         },
       },
-    })
+    });
 
     if (!driver) {
-      return res.status(400).json({ error: "Driver not available for this date and district" })
+      return res.status(400).json({ error: "Driver not available for this date and district" });
     }
 
     // Get the service type for day booking
     const serviceType = await prisma.serviceType.findFirst({
       where: { category: "DAY_BOOKING" },
-    })
+    });
 
     if (!serviceType) {
-      return res.status(400).json({ error: "Day booking service type not found" })
+      return res.status(400).json({ error: "Day booking service type not found" });
     }
 
     // Geocode pickup address
-    const pickupGeo = await geocodingClient.forwardGeocode({ query: data.pickupAddress }).send()
-    const pickupFeature = pickupGeo.body.features[0]
+    const pickupGeo = await geocodingClient.forwardGeocode({ query: data.pickupAddress }).send();
+    const pickupFeature = pickupGeo.body.features[0];
     if (!pickupFeature) {
-      return res.status(400).json({ error: "Invalid pickup address" })
+      return res.status(400).json({ error: "Invalid pickup address" });
     }
 
     // Create pickup location
@@ -391,10 +391,13 @@ export const bookDriverForDay = async (req: Request, res: Response) => {
         country: pickupFeature.context.find((c: any) => c.id.includes("country"))?.text || "",
         placeId: pickupFeature.id,
       },
-    })
+    });
 
     // Get price from driver district or default
-    const price = driver.driverDistricts[0]?.customPrice || driver.dayBookingPrice!
+    const price = driver.driverDistricts[0]?.customPrice || driver.dayBookingPrice!;
+
+    // Calculate platform fee based on commission rate
+    const platformFee = price * serviceType.commissionRate;
 
     // Create service
     const service = await prisma.service.create({
@@ -428,18 +431,29 @@ export const bookDriverForDay = async (req: Request, res: Response) => {
           },
         },
       },
-    })
+    });
 
-    // Create payment
+    // Create payment with platformFee
     await prisma.payment.create({
       data: {
         serviceId: service.id,
         userId,
         amount: price,
-        paymentMethod: "CASH", // Default to cash
+        platformFee, // Add the calculated platform fee
+        paymentMethod: "CASH",
         status: "PENDING",
+        driverEarnings: price - platformFee, // Calculate driver earnings
       },
-    })
+    });
+
+    // Create commission record
+    await prisma.commission.create({
+      data: {
+        serviceId: service.id,
+        platformFee,
+        driverEarnings: price - platformFee,
+      },
+    });
 
     // Create notification for driver
     await prisma.notification.create({
@@ -450,20 +464,20 @@ export const bookDriverForDay = async (req: Request, res: Response) => {
         type: "SERVICE_UPDATE",
         data: JSON.stringify({ serviceId: service.id }),
       },
-    })
+    });
 
     // Emit socket event
-    ;(req as any).io.to(`driver:${driver.id}`).emit("service:day_booking", {
+    (req as any).io.to(`driver:${driver.id}`).emit("service:day_booking", {
       serviceId: service.id,
       date: formattedDate,
       district: service.district?.name || "Unknown",
-    })
+    });
 
-    res.status(201).json(service)
+    res.status(201).json(service);
   } catch (error: any) {
-    res.status(400).json({ error: error.message })
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 // Get booking history
 export const getBookingHistory = async (req: Request, res: Response) => {

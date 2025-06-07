@@ -189,19 +189,19 @@ export const estimateMovingCost = async (req: Request, res: Response) => {
 // Book moving service
 export const bookMovingService = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).auth?.userId
-    const data = bookMovingSchema.parse(req.body)
+    const userId = (req as any).auth?.userId;
+    const data = bookMovingSchema.parse(req.body);
 
     // Geocode addresses
     const [pickupGeo, dropoffGeo] = await Promise.all([
       geocodingClient.forwardGeocode({ query: data.pickupAddress }).send(),
       geocodingClient.forwardGeocode({ query: data.dropoffAddress }).send(),
-    ])
+    ]);
 
-    const pickupFeature = pickupGeo.body.features[0]
-    const dropoffFeature = dropoffGeo.body.features[0]
+    const pickupFeature = pickupGeo.body.features[0];
+    const dropoffFeature = dropoffGeo.body.features[0];
     if (!pickupFeature || !dropoffFeature) {
-      return res.status(400).json({ error: "Invalid address" })
+      return res.status(400).json({ error: "Invalid address" });
     }
 
     // Create locations
@@ -228,14 +228,14 @@ export const bookMovingService = async (req: Request, res: Response) => {
           placeId: dropoffFeature.id,
         },
       }),
-    ])
+    ]);
 
     // Calculate distance
     const distance =
       getDistance(
         { latitude: pickupLocation.latitude, longitude: pickupLocation.longitude },
         { latitude: dropoffLocation.latitude, longitude: dropoffLocation.longitude },
-      ) / 1000 // Convert to km
+      ) / 1000; // Convert to km
 
     // Create route
     const route = await prisma.route.create({
@@ -246,30 +246,42 @@ export const bookMovingService = async (req: Request, res: Response) => {
         estimatedTime: Math.ceil(distance / 40) * 60, // Assuming 40km/h average speed, in minutes
         polyline: "", // Would be populated with actual route polyline
       },
-    })
+    });
 
     // Get house moving service type
     const serviceType = await prisma.serviceType.findFirst({
       where: { category: "HOUSE_MOVING" },
-    })
+    });
 
     if (!serviceType) {
-      return res.status(400).json({ error: "House moving service type not found" })
+      return res.status(400).json({ error: "House moving service type not found" });
     }
 
+    // Define inventory item type
+    type InventoryItem = {
+      name: string;
+      category: string;
+      quantity: number;
+      specialHandling?: boolean;
+      specialInstructions?: string;
+    };
+
     // Calculate estimated volume and price
-    const estimatedVolume = calculateEstimatedVolume(data.inventoryItems)
-    const basePrice = 50 // Base fee
-    const distancePrice = distance * 2 // $2 per km
-    const volumePrice = estimatedVolume * 10 // $10 per cubic meter
-    const helpersPrice = data.requiresHelpers ? data.helpersCount * 25 : 0 // $25 per helper
-    const specialHandlingPrice = data.inventoryItems.filter((item) => item.specialHandling).length * 15 // $15 per special item
-    const subtotal = basePrice + distancePrice + volumePrice + helpersPrice + specialHandlingPrice
-    const tax = subtotal * 0.05 // 5% tax
-    const total = subtotal + tax
+    const estimatedVolume = calculateEstimatedVolume(data.inventoryItems);
+    const basePrice = 50; // Base fee
+    const distancePrice = distance * 2; // $2 per km
+    const volumePrice = estimatedVolume * 10; // $10 per cubic meter
+    const helpersPrice = data.requiresHelpers ? data.helpersCount * 25 : 0; // $25 per helper
+    const specialHandlingPrice = data.inventoryItems.filter((item: InventoryItem) => item.specialHandling).length * 15; // $15 per special item
+    const subtotal = basePrice + distancePrice + volumePrice + helpersPrice + specialHandlingPrice;
+    const tax = subtotal * 0.05; // 5% tax
+    const total = subtotal + tax;
+
+    // Calculate platform fee
+    const platformFee = total * serviceType.commissionRate;
 
     // Generate tracking code
-    const trackingCode = generateTrackingCode()
+    const trackingCode = generateTrackingCode();
 
     // Create service
     const service = await prisma.service.create({
@@ -288,11 +300,11 @@ export const bookMovingService = async (req: Request, res: Response) => {
         trackingCode,
         movingCompanyId: data.movingCompanyId,
       },
-    })
+    });
 
     // Create inventory items
     const inventoryItems = await Promise.all(
-      data.inventoryItems.map((item) =>
+      data.inventoryItems.map((item: InventoryItem) =>
         prisma.moveInventoryItem.create({
           data: {
             serviceId: service.id,
@@ -304,7 +316,7 @@ export const bookMovingService = async (req: Request, res: Response) => {
           },
         }),
       ),
-    )
+    );
 
     // Create payment
     await prisma.payment.create({
@@ -312,19 +324,26 @@ export const bookMovingService = async (req: Request, res: Response) => {
         serviceId: service.id,
         userId,
         amount: total,
+        platformFee, // Required field
         paymentMethod: data.paymentMethod,
         status: "PENDING",
       },
-    })
+    });
+
+    // Create commission
+    await prisma.commission.create({
+      data: {
+        serviceId: service.id,
+        platformFee,
+      },
+    });
 
     // If moving company is specified, notify them
     if (data.movingCompanyId) {
-      // In a real implementation, you would send a notification to the moving company
-      // For now, we'll just update the service status
       await prisma.service.update({
         where: { id: service.id },
         data: { status: "CONFIRMED" },
-      })
+      });
     }
 
     // Create notification for user
@@ -336,7 +355,7 @@ export const bookMovingService = async (req: Request, res: Response) => {
         type: "SERVICE_UPDATE",
         data: JSON.stringify({ serviceId: service.id }),
       },
-    })
+    });
 
     res.status(201).json({
       service,
@@ -352,12 +371,11 @@ export const bookMovingService = async (req: Request, res: Response) => {
         tax,
         total,
       },
-    })
+    });
   } catch (error: any) {
-    res.status(400).json({ error: error.message })
+    res.status(400).json({ error: error.message });
   }
-}
-
+};
 // Get moving service details
 export const getMovingServiceDetails = async (req: Request, res: Response) => {
   try {

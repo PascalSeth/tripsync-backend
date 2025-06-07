@@ -41,19 +41,19 @@ export const driverOnly = async (req: Request, res: Response, next: NextFunction
 // Request a ride with driver matching
 export const requestRide = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).auth?.userId
-    const data = requestRideSchema.parse(req.body)
+    const userId = (req as any).auth?.userId;
+    const data = requestRideSchema.parse(req.body);
 
     // Geocode pickup and dropoff
     const [pickupGeo, dropoffGeo] = await Promise.all([
       geocodingClient.forwardGeocode({ query: data.pickupAddress }).send(),
       geocodingClient.forwardGeocode({ query: data.dropoffAddress }).send(),
-    ])
+    ]);
 
-    const pickupFeature = pickupGeo.body.features[0]
-    const dropoffFeature = dropoffGeo.body.features[0]
+    const pickupFeature = pickupGeo.body.features[0];
+    const dropoffFeature = dropoffGeo.body.features[0];
     if (!pickupFeature || !dropoffFeature) {
-      return res.status(400).json({ error: "Invalid address" })
+      return res.status(400).json({ error: "Invalid address" });
     }
 
     // Create locations
@@ -78,7 +78,7 @@ export const requestRide = async (req: Request, res: Response) => {
           placeId: dropoffFeature.id,
         },
       }),
-    ])
+    ]);
 
     // Find nearest available driver
     const drivers = await prisma.driverProfile.findMany({
@@ -89,26 +89,29 @@ export const requestRide = async (req: Request, res: Response) => {
         currentLocationId: { not: null },
       },
       include: { currentLocation: true },
-    })
+    });
 
-    let nearestDriver = null
-    let minDistance = Number.POSITIVE_INFINITY
+    let nearestDriver = null;
+    let minDistance = Number.POSITIVE_INFINITY;
     for (const driver of drivers) {
       if (driver.currentLocation) {
         const distance = getDistance(
           { latitude: pickupLocation.latitude, longitude: pickupLocation.longitude },
           { latitude: driver.currentLocation.latitude, longitude: driver.currentLocation.longitude },
-        )
+        );
         if (distance < minDistance) {
-          minDistance = distance
-          nearestDriver = driver
+          minDistance = distance;
+          nearestDriver = driver;
         }
       }
     }
 
     // Calculate estimated price
-    const serviceType = await prisma.serviceType.findUnique({ where: { id: data.serviceTypeId } })
-    const estimatedPrice = serviceType?.basePrice || 10.0
+    const serviceType = await prisma.serviceType.findUnique({ where: { id: data.serviceTypeId } });
+    const estimatedPrice = serviceType?.basePrice || 10.0;
+
+    // Calculate platform fee
+    const platformFee = estimatedPrice * (serviceType?.commissionRate || 0.18); // Default to 18% if not set
 
     // Create service
     const service = await prisma.service.create({
@@ -123,7 +126,7 @@ export const requestRide = async (req: Request, res: Response) => {
         estimatedPrice,
       },
       include: { pickupLocation: true, dropoffLocation: true, serviceType: true },
-    })
+    });
 
     // Create payment
     await prisma.payment.create({
@@ -131,26 +134,35 @@ export const requestRide = async (req: Request, res: Response) => {
         serviceId: service.id,
         userId,
         amount: service.estimatedPrice || 10.0,
+        platformFee, // Added required field
         paymentMethod: "CASH",
         status: "PENDING",
       },
-    })
+    });
+
+    // Create commission
+    await prisma.commission.create({
+      data: {
+        serviceId: service.id,
+        platformFee,
+      },
+    });
 
     if (nearestDriver) {
       await prisma.driverProfile.update({
         where: { id: nearestDriver.id },
         data: { currentStatus: "ON_TRIP" },
-      })
-      ;(req as any).io
+      });
+      (req as any).io
         .to(`service:${service.id}`)
-        .emit("service:driver_assigned", { serviceId: service.id, driverId: nearestDriver.id })
+        .emit("service:driver_assigned", { serviceId: service.id, driverId: nearestDriver.id });
     }
 
-    res.status(201).json(service)
+    res.status(201).json(service);
   } catch (error: any) {
-    res.status(400).json({ error: error.message })
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 // Driver accepts a ride (manual fallback)
 export const acceptRide = async (req: Request, res: Response) => {

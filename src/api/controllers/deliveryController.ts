@@ -134,17 +134,17 @@ export const estimateDelivery = async (req: Request, res: Response) => {
 // Create a delivery order
 export const createDeliveryOrder = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).auth?.userId
-    const data = createDeliveryOrderSchema.parse(req.body)
+    const userId = (req as any).auth?.userId;
+    const data = createDeliveryOrderSchema.parse(req.body);
 
     // Get store details
     const store = await prisma.store.findUnique({
       where: { id: data.storeId },
       include: { location: true },
-    })
+    });
 
     if (!store) {
-      return res.status(404).json({ error: "Store not found" })
+      return res.status(404).json({ error: "Store not found" });
     }
 
     // Get products
@@ -154,23 +154,23 @@ export const createDeliveryOrder = async (req: Request, res: Response) => {
         storeId: data.storeId,
         inStock: true,
       },
-    })
+    });
 
     if (products.length !== data.items.length) {
-      return res.status(400).json({ error: "One or more products are unavailable" })
+      return res.status(400).json({ error: "One or more products are unavailable" });
     }
 
     // Calculate subtotal
     const subtotal = data.items.reduce((sum, item) => {
-      const product = products.find((p) => p.id === item.productId)
-      return sum + (product?.price || 0) * item.quantity
-    }, 0)
+      const product = products.find((p) => p.id === item.productId);
+      return sum + (product?.price || 0) * item.quantity;
+    }, 0);
 
     // Geocode delivery address
-    const geoResponse = await geocodingClient.forwardGeocode({ query: data.deliveryAddress }).send()
-    const feature = geoResponse.body.features[0]
+    const geoResponse = await geocodingClient.forwardGeocode({ query: data.deliveryAddress }).send();
+    const feature = geoResponse.body.features[0];
     if (!feature) {
-      return res.status(400).json({ error: "Invalid delivery address" })
+      return res.status(400).json({ error: "Invalid delivery address" });
     }
 
     // Create delivery location
@@ -183,35 +183,39 @@ export const createDeliveryOrder = async (req: Request, res: Response) => {
         country: feature.context.find((c: any) => c.id.includes("country"))?.text || "",
         placeId: feature.id,
       },
-    })
+    });
 
     // Calculate distance
     const distance = getDistance(
       { latitude: store.location.latitude, longitude: store.location.longitude },
       { latitude: deliveryLocation.latitude, longitude: deliveryLocation.longitude },
-    )
+    );
 
     // Calculate delivery fee based on distance
-    const distanceKm = distance / 1000
-    const baseFee = 2.0 // Base delivery fee
-    const perKmFee = 0.5 // Fee per km
-    const deliveryFee = baseFee + distanceKm * perKmFee
+    const distanceKm = distance / 1000;
+    const baseFee = 2.0; // Base delivery fee
+    const perKmFee = 0.5; // Fee per km
+    const deliveryFee = baseFee + distanceKm * perKmFee;
 
     // Calculate tax
-    const taxRate = 0.05 // 5% tax
-    const tax = subtotal * taxRate
+    const taxRate = 0.05; // 5% tax
+    const tax = subtotal * taxRate;
 
     // Calculate total
-    const total = subtotal + deliveryFee + tax
+    const total = subtotal + deliveryFee + tax;
 
     // Get store delivery service type
     const serviceType = await prisma.serviceType.findFirst({
       where: { category: "STORE_DELIVERY" },
-    })
+    });
 
     if (!serviceType) {
-      return res.status(400).json({ error: "Delivery service type not found" })
+      return res.status(400).json({ error: "Delivery service type not found" });
     }
+
+    // Calculate platform fee
+    const platformFee = total * serviceType.commissionRate;
+    const storeEarnings = subtotal - platformFee;
 
     // Create service
     const service = await prisma.service.create({
@@ -233,12 +237,12 @@ export const createDeliveryOrder = async (req: Request, res: Response) => {
         },
         dropoffLocation: true,
       },
-    })
+    });
 
     // Create order items
     const orderItems = await Promise.all(
       data.items.map((item) => {
-        const product = products.find((p) => p.id === item.productId)
+        const product = products.find((p) => p.id === item.productId);
         return prisma.orderItem.create({
           data: {
             serviceId: service.id,
@@ -247,9 +251,9 @@ export const createDeliveryOrder = async (req: Request, res: Response) => {
             unitPrice: product?.price || 0,
             specialRequest: item.specialRequest,
           },
-        })
+        });
       }),
-    )
+    );
 
     // Create payment
     await prisma.payment.create({
@@ -257,21 +261,32 @@ export const createDeliveryOrder = async (req: Request, res: Response) => {
         serviceId: service.id,
         userId,
         amount: total,
+        platformFee, // Added required field
+        storeEarnings, // Added to align with schema
         paymentMethod: data.paymentMethod,
         status: "PENDING",
       },
-    })
+    });
+
+    // Create commission
+    await prisma.commission.create({
+      data: {
+        serviceId: service.id,
+        platformFee,
+        storeEarnings,
+      },
+    });
 
     // Create notification for store
     await prisma.notification.create({
       data: {
-        userId, // This would be replaced with store owner's ID in a real implementation
+        userId: store.ownerId, // Use store owner's ID
         title: "New Order",
         body: `New order #${service.id.slice(-6)} received`,
         type: "DELIVERY_UPDATE",
         data: JSON.stringify({ serviceId: service.id }),
       },
-    })
+    });
 
     res.status(201).json({
       service,
@@ -280,12 +295,11 @@ export const createDeliveryOrder = async (req: Request, res: Response) => {
       deliveryFee,
       tax,
       total,
-    })
+    });
   } catch (error: any) {
-    res.status(400).json({ error: error.message })
+    res.status(400).json({ error: error.message });
   }
-}
-
+};
 // Get delivery details
 export const getDeliveryDetails = async (req: Request, res: Response) => {
   try {

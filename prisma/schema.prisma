@@ -1,4 +1,4 @@
-// TripSync - Complete Optimized Schema
+// TripSync - Complete Optimized Schema with RBAC
 // Transportation service platform with integrated recommendation system
 
 generator client {
@@ -9,6 +9,90 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+// ===== RBAC SYSTEM =====
+
+enum UserRole {
+  SUPER_ADMIN
+  CITY_ADMIN
+  EMERGENCY_ADMIN
+  PLACE_OWNER
+  STORE_OWNER
+  DRIVER
+  USER
+  EMERGENCY_RESPONDER
+  DISPATCHER
+  SUPPORT_AGENT
+}
+
+enum Permission {
+  // User Management
+  CREATE_USER
+  READ_USER
+  UPDATE_USER
+  DELETE_USER
+  MANAGE_USER_ROLES
+  
+  // Driver Management
+  APPROVE_DRIVER
+  SUSPEND_DRIVER
+  VIEW_DRIVER_ANALYTICS
+  MANAGE_DRIVER_SHIFTS
+  
+  // Store Management
+  CREATE_STORE
+  UPDATE_STORE
+  DELETE_STORE
+  MANAGE_STORE_PRODUCTS
+  VIEW_STORE_ANALYTICS
+  
+  // Place Management
+  CREATE_PLACE
+  UPDATE_PLACE
+  DELETE_PLACE
+  APPROVE_PLACE
+  MANAGE_PLACE_PHOTOS
+  
+  // Service Management
+  CREATE_SERVICE
+  UPDATE_SERVICE
+  CANCEL_SERVICE
+  ASSIGN_DRIVER
+  
+  // Emergency Management
+  DISPATCH_EMERGENCY
+  MANAGE_RESPONDERS
+  VIEW_EMERGENCY_ANALYTICS
+  COORDINATE_INCIDENTS
+  
+  // Financial Management
+  VIEW_PAYMENTS
+  PROCESS_REFUNDS
+  MANAGE_COMMISSIONS
+  VIEW_FINANCIAL_REPORTS
+  
+  // System Management
+  MANAGE_SYSTEM_CONFIG
+  VIEW_SYSTEM_ANALYTICS
+  MANAGE_REGIONS
+  MANAGE_SERVICE_TYPES
+  
+  // Content Management
+  MODERATE_REVIEWS
+  MANAGE_NOTIFICATIONS
+  HANDLE_REPORTS
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  role         UserRole
+  permission   Permission
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  
+  @@unique([role, permission])
+  @@map("role_permissions")
 }
 
 // ===== CORE USER MODELS =====
@@ -25,15 +109,22 @@ model User {
   dateOfBirth        DateTime?
   gender             Gender?
   emergencyContact   String?
+  role               UserRole             @default(USER)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   isActive           Boolean              @default(true)
   isVerified         Boolean              @default(false)
   verificationToken  String?
   resetPasswordToken String?
+  lastLoginAt        DateTime?
+  twoFactorEnabled   Boolean              @default(false)
+  twoFactorSecret    String?
   
   // User relationships
   driver             DriverProfile?       // If user is also a driver
+  storeOwner         StoreOwnerProfile?   // If user is a store owner
+  placeOwner         PlaceOwnerProfile?   // If user is a place owner
+  emergencyResponder EmergencyResponderProfile? // If user is emergency responder
   services           Service[]
   payments           Payment[]
   reviews            Review[]             // Reviews given by user
@@ -41,6 +132,7 @@ model User {
   favoriteLocations  FavoriteLocation[]
   notifications      Notification[]
   reports            Report[]             // Reports filed by user
+  sessions           UserSession[]
   
   // Place recommendation relationships
   placeSurveys       Survey[]
@@ -48,13 +140,31 @@ model User {
   preferenceInsights UserPreferenceInsight[]
 
   @@map("users")
+  AuditLog AuditLog[]
+}
+
+model UserSession {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String    @unique
+  deviceInfo   String?
+  ipAddress    String?
+  isActive     Boolean   @default(true)
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime  @default(now())
+  
+  @@map("user_sessions")
 }
 
 model AnonymousUser {
   id              String        @id @default(uuid())
   name            String
   gender          Gender?
+  sessionId       String?       @unique
   createdAt       DateTime      @default(now())
+  lastActiveAt    DateTime      @default(now())
   
   // Relations
   placeSurveys    Survey[]
@@ -71,12 +181,101 @@ enum Gender {
   PREFER_NOT_TO_SAY
 }
 
+// ===== STORE OWNER PROFILE =====
+
+model StoreOwnerProfile {
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessLicense   String
+  taxId             String?
+  businessType      String
+  verificationStatus ApprovalStatus @default(PENDING)
+  verifiedAt        DateTime?
+  
+  stores            Store[]
+  
+  @@map("store_owner_profiles")
+}
+
+// ===== PLACE OWNER PROFILE =====
+
+model PlaceOwnerProfile {
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessLicense   String?
+  verificationStatus ApprovalStatus @default(PENDING)
+  verifiedAt        DateTime?
+  subscriptionTier  SubscriptionTier @default(BASIC)
+  subscriptionExpiresAt DateTime?
+  
+  places            Place[]
+  
+  @@map("place_owner_profiles")
+}
+
+enum SubscriptionTier {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}
+
+// ===== EMERGENCY RESPONDER PROFILE =====
+
+model EmergencyResponderProfile {
+  id                String           @id @default(uuid())
+  userId            String           @unique
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeNumber       String           @unique
+  department        String
+  specialization    EmergencyType
+  certifications    String[]         // JSON array of certifications
+  currentStatus     ResponderStatus  @default(OFF_DUTY)
+  currentLocationId String?
+  currentLocation   Location?        @relation(fields: [currentLocationId], references: [id])
+  
+  shifts            ResponderShift[]
+  emergencyServices Service[]        @relation("EmergencyResponder")
+  
+  @@map("emergency_responder_profiles")
+}
+
+enum ResponderStatus {
+  ON_DUTY
+  OFF_DUTY
+  RESPONDING
+  UNAVAILABLE
+  BREAK
+}
+
+model ResponderShift {
+  id          String                    @id @default(uuid())
+  responderId String
+  responder   EmergencyResponderProfile @relation(fields: [responderId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  shiftType   ShiftType
+  isActive    Boolean                   @default(true)
+  
+  @@map("responder_shifts")
+}
+
+enum ShiftType {
+  DAY
+  NIGHT
+  WEEKEND
+  EMERGENCY
+}
+
+// ===== DRIVER PROFILE (Enhanced) =====
+
 model DriverProfile {
   id                   String             @id @default(uuid())
   userId               String             @unique
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   driversLicense       String
-  dayBookingPrice    Float?            // Driver-set price per day
+  dayBookingPrice      Float?            // Driver-set price per day
   nationalId           String
   registrationPic      String
   driverPic            String
@@ -93,8 +292,11 @@ model DriverProfile {
   currentLocation      Location?          @relation(fields: [currentLocationId], references: [id])
   isAvailableForDayBooking Boolean        @default(false)
   isTaxiDriver         Boolean            @default(false)
-    driverAvailability DriverAvailability[]
-  driverDistricts    DriverDistrict[]
+  lastActiveAt         DateTime?
+  inactivityThreshold  Int                @default(300) // seconds
+  
+  driverAvailability   DriverAvailability[]
+  driverDistricts      DriverDistrict[]
   // Driver relationships
   services             Service[]
   assignedDriverTypes  AssignedDriverType[]
@@ -110,12 +312,15 @@ enum DriverStatus {
   OFFLINE
   ON_TRIP
   BREAK
+  MAINTENANCE
+  SUSPENDED
 }
 
 enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 model AssignedDriverType {
@@ -130,7 +335,7 @@ model AssignedDriverType {
   @@map("assigned_driver_types")
 }
 
-// ===== VEHICLE MODELS =====
+// ===== VEHICLE MODELS (Enhanced) =====
 
 model Vehicle {
   id                  String         @id @default(uuid())
@@ -147,10 +352,19 @@ model Vehicle {
   inspectionDate      DateTime
   photos              String[]
   isActive            Boolean        @default(true)
+  maintenanceStatus   MaintenanceStatus @default(OPERATIONAL)
+  lastMaintenanceDate DateTime?
   
   driverProfiles      DriverProfile[]
   
   @@map("vehicles")
+}
+
+enum MaintenanceStatus {
+  OPERATIONAL
+  MAINTENANCE_DUE
+  IN_MAINTENANCE
+  OUT_OF_SERVICE
 }
 
 model VehicleType {
@@ -163,7 +377,7 @@ model VehicleType {
   @@map("vehicle_types")
 }
 
-// ===== TAXI MODELS =====
+// ===== TAXI MODELS (Enhanced) =====
 
 model Taxi {
   id                  String        @id @default(uuid())
@@ -179,6 +393,7 @@ model Taxi {
   isActive            Boolean       @default(true)
   currentLocationId   String?
   currentLocation     Location?     @relation("CurrentTaxiLocation", fields: [currentLocationId], references: [id])
+  acceptanceWindow    Int           @default(15) // seconds
   
   services            Service[]
   
@@ -209,7 +424,7 @@ model TaxiZone {
   @@map("taxi_zones")
 }
 
-// ===== LOCATION MODELS =====
+// ===== LOCATION MODELS (Enhanced) =====
 
 model Location {
   id              String            @id @default(uuid())
@@ -221,6 +436,7 @@ model Location {
   country         String
   postalCode      String?
   placeId         String?           // Google Maps Place ID or similar
+  gpsAccuracy     Float?            // GPS accuracy in meters
   
   // Location relationships
   pickupServices   Service[]        @relation("PickupLocation")
@@ -233,9 +449,10 @@ model Location {
   taxiStands       TaxiStand[]
   currentTaxis     Taxi[]           @relation("CurrentTaxiLocation")
   places           Place[]          // Places at this location
+  movingCompanies  MovingCompany[]
+  emergencyResponders EmergencyResponderProfile[]
   
   @@map("locations")
-  MovingCompany MovingCompany[]
 }
 
 model FavoriteLocation {
@@ -260,6 +477,7 @@ model Route {
   distance          Float
   estimatedTime     Int              // In minutes
   polyline          String           // Encoded polyline for the route
+  trafficFactor     Float            @default(1.0) // Traffic multiplier
   
   sharedRideGroups  SharedRideGroup[]
   
@@ -294,7 +512,7 @@ model District {
   regionId    String
   region      Region    @relation("RegionDistrict", fields: [regionId], references: [id])
   boundaries  String?   // GeoJSON polygon data
-    driverDistricts    DriverDistrict[]
+  driverDistricts    DriverDistrict[]
 
   dayBookings Service[] @relation("DistrictBooking")
   
@@ -302,7 +520,7 @@ model District {
   @@map("districts")
 }
 
-// ===== SERVICE MODELS =====
+// ===== SERVICE MODELS (Enhanced) =====
 
 model ServiceType {
   id                String              @id @default(uuid())
@@ -316,6 +534,8 @@ model ServiceType {
   hasFixedRoutes    Boolean             @default(false)
   maxCapacity       Int                 @default(1)
   isActive          Boolean             @default(true)
+  commissionRate    Float               @default(0.18) // 18% platform fee
+  cancellationFee   Float               @default(0)
   
   services          Service[]
   assignedDrivers   AssignedDriverType[]
@@ -342,8 +562,9 @@ model Service {
   serviceType           ServiceType       @relation(fields: [serviceTypeId], references: [id])
   driverId              String?
   driver                DriverProfile?    @relation(fields: [driverId], references: [id])
-  placeId            String?           // Link to recommended place
-  place              Place?            @relation(fields: [placeId], references: [id])
+  placeId               String?           // Link to recommended place
+  place                 Place?            @relation(fields: [placeId], references: [id])
+  
   // Common service fields
   status                ServiceStatus     @default(REQUESTED)
   createdAt             DateTime          @default(now())
@@ -371,7 +592,7 @@ model Service {
   confirmationCode      String?           @unique
   confirmedAt           DateTime?
   
-  // Ride and Taxi specific
+  // Enhanced ride features
   taxiId                String?
   taxi                  Taxi?             @relation(fields: [taxiId], references: [id])
   originZoneId          String?
@@ -384,16 +605,27 @@ model Service {
   maxSharedRiders       Int?
   sharedRideGroupId     String?
   sharedRideGroup       SharedRideGroup?  @relation(fields: [sharedRideGroupId], references: [id])
+  
+  // Safety and monitoring
+  speedAlerts           Boolean           @default(false)
+  geofenceAlerts        Boolean           @default(false)
+  safetyCheckInterval   Int?              // minutes
+  
   // Day Booking specific
   districtId            String?
   district              District?         @relation("DistrictBooking", fields: [districtId], references: [id])
   startTime             DateTime?         // For day bookings
   endTime               DateTime?         // For day bookings
+  multipleStops         String?           // JSON array of stops
+  waitingTime           Int?              // minutes
+  specialRequirements   String?           // JSON array of requirements
   
   // Store Order specific
   storeId               String?
   store                 Store?            @relation(fields: [storeId], references: [id])
   orderItems            OrderItem[]
+  preparationTime       Int?              // minutes
+  temperatureMonitoring Boolean           @default(false)
   
   // House Moving specific
   movingCompanyId       String?
@@ -401,18 +633,35 @@ model Service {
   vehicleSize           String?
   trackingCode          String?           @unique
   inventoryItems        MoveInventoryItem[]
+  serviceTier           MovingServiceTier?
+  packingRequired       Boolean           @default(false)
+  furnitureDisassembly  Boolean           @default(false)
+  temporaryStorage      Boolean           @default(false)
   
   // Emergency specific
   emergencyType         EmergencyType?
   responderId           String?           // ID of emergency responder
+  responder             EmergencyResponderProfile? @relation("EmergencyResponder", fields: [responderId], references: [id])
+  incidentReport        String?           // JSON incident details
+  multiAgencyAlert      Boolean           @default(false)
+  
+  // Delivery specific
+  packageSize           PackageSize?
+  packageWeight         Float?
+  recipientIdRequired   Boolean           @default(false)
+  proofOfDelivery       String?           // URL to proof image/signature
+  scheduledPickup       DateTime?
+  priorityLevel         PriorityLevel     @default(STANDARD)
   
   // Relationships
   payment               Payment?
   review                Review?           // Review from user
   driverReview          DriverToUserReview? // Review from driver
   reports               Report[]          // Reports related to this service
+  statusHistory         ServiceStatusHistory[]
   
   @@map("services")
+  Commission Commission[]
 }
 
 enum ServiceStatus {
@@ -455,6 +704,37 @@ enum EmergencyType {
   POLICE
   AMBULANCE
   FIRE
+  RESCUE
+}
+
+enum MovingServiceTier {
+  BASIC
+  FULL_SERVICE
+  PREMIUM
+}
+
+enum PackageSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum PriorityLevel {
+  STANDARD
+  URGENT
+  CRITICAL
+}
+
+model ServiceStatusHistory {
+  id        String        @id @default(uuid())
+  serviceId String
+  service   Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  status    ServiceStatus
+  timestamp DateTime      @default(now())
+  notes     String?
+  
+  @@map("service_status_history")
 }
 
 model SharedRideGroup {
@@ -465,17 +745,22 @@ model SharedRideGroup {
   currentCapacity Int           @default(0)
   status          ServiceStatus @default(SEARCHING_DRIVER)
   createdAt       DateTime      @default(now())
+  discountRate    Float         @default(0.5) // 50% discount
+  pickupRadius    Int           @default(200) // meters
   
   services        Service[]
   
   @@map("shared_ride_groups")
 }
+
 model DriverAvailability {
   id              String        @id @default(uuid())
   driverProfileId String
   driver          DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
   date            DateTime
   isAvailable     Boolean       @default(true)
+  availableFrom   DateTime?
+  availableTo     DateTime?
   
   @@unique([driverProfileId, date])
   @@map("driver_availability")
@@ -492,7 +777,8 @@ model DriverDistrict {
   @@unique([driverProfileId, districtId])
   @@map("driver_districts")
 }
-// ===== STORE MODELS =====
+
+// ===== STORE MODELS (Enhanced) =====
 
 model Store {
   id              String      @id @default(uuid())
@@ -500,15 +786,21 @@ model Store {
   type            StoreType
   locationId      String
   location        Location    @relation(fields: [locationId], references: [id])
+  ownerId         String
+  owner           StoreOwnerProfile @relation(fields: [ownerId], references: [id])
   contactPhone    String
   contactEmail    String?
   operatingHours  String      // JSON string with operating hours
   description     String?
   rating          Float       @default(0)
   isActive        Boolean     @default(true)
+  isTemporarilyClosed Boolean @default(false)
+  closureReason   String?
   
   products        Product[]
   orders          Service[]
+  staff           StoreStaff[]
+  businessHours   BusinessHours[]
   
   @@map("stores")
 }
@@ -522,6 +814,39 @@ enum StoreType {
   OTHER
 }
 
+model StoreStaff {
+  id       String    @id @default(uuid())
+  storeId  String
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name     String
+  role     StaffRole
+  phone    String
+  email    String?
+  isActive Boolean   @default(true)
+  
+  @@map("store_staff")
+}
+
+enum StaffRole {
+  MANAGER
+  CASHIER
+  INVENTORY
+  DELIVERY
+}
+
+model BusinessHours {
+  id        String    @id @default(uuid())
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  dayOfWeek Int       // 0 = Sunday, 1 = Monday, etc.
+  openTime  String    // HH:MM format
+  closeTime String    // HH:MM format
+  isClosed  Boolean   @default(false)
+  
+  @@unique([storeId, dayOfWeek])
+  @@map("business_hours")
+}
+
 model Product {
   id          String      @id @default(uuid())
   storeId     String
@@ -532,6 +857,9 @@ model Product {
   category    String
   image       String?
   inStock     Boolean     @default(true)
+  stockQuantity Int       @default(0)
+  minStockLevel Int       @default(0)
+  sku         String?     @unique
   
   orderItems  OrderItem[]
   
@@ -551,7 +879,7 @@ model OrderItem {
   @@map("order_items")
 }
 
-// ===== HOUSE MOVING MODELS =====
+// ===== HOUSE MOVING MODELS (Enhanced) =====
 
 model MoveInventoryItem {
   id          String    @id @default(uuid())
@@ -562,6 +890,8 @@ model MoveInventoryItem {
   quantity    Int
   specialHandling Boolean  @default(false)
   specialInstructions String?
+  photoUrl    String?
+  insuranceValue Float?
   
   @@map("move_inventory_items")
 }
@@ -579,10 +909,11 @@ model MovingCompany {
   services        Service[]
   currentLocationId String?
   currentLocation   Location? @relation(fields: [currentLocationId], references: [id])
+  
   @@map("moving_companies")
 }
 
-// ===== PAYMENT SYSTEM =====
+// ===== PAYMENT SYSTEM (Enhanced) =====
 
 model Payment {
   id              String          @id @default(uuid())
@@ -591,10 +922,16 @@ model Payment {
   userId          String
   user            User            @relation(fields: [userId], references: [id])
   amount          Float
+  platformFee     Float           // Commission taken by platform
+  driverEarnings  Float?          // Amount driver receives
+  storeEarnings   Float?          // Amount store receives
   paymentMethod   PaymentMethod
   status          PaymentStatus   @default(PENDING)
   transactionId   String?         @unique
   paymentDate     DateTime?
+  refundAmount    Float?
+  refundReason    String?
+  refundDate      DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   
@@ -615,9 +952,11 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
 }
 
-// ===== FEEDBACK SYSTEM =====
+// ===== FEEDBACK SYSTEM (Enhanced) =====
 
 model Review {
   id              String    @id @default(uuid())
@@ -629,7 +968,11 @@ model Review {
   driverRating    Int?      // 1-5 specifically for driver
   vehicleRating   Int?      // 1-5 for vehicle condition
   serviceRating   Int?      // 1-5 for overall service
+  safetyRating    Int?      // 1-5 for safety
   comment         String?
+  isModerated     Boolean   @default(false)
+  moderatedBy     String?   // Admin user ID
+  moderatedAt     DateTime?
   createdAt       DateTime  @default(now())
   
   @@map("reviews")
@@ -650,7 +993,7 @@ model DriverToUserReview {
   @@map("driver_to_user_reviews")
 }
 
-// ===== REPORTING SYSTEM =====
+// ===== REPORTING SYSTEM (Enhanced) =====
 
 model Report {
   id              String       @id @default(uuid())
@@ -663,6 +1006,8 @@ model Report {
   incidentDate    DateTime
   status          ReportStatus @default(SUBMITTED)
   responseMessage String?
+  assignedTo      String?      // Admin user ID
+  priority        PriorityLevel @default(STANDARD)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   
@@ -684,6 +1029,8 @@ enum ReportType {
   DELIVERY_ISSUE
   SERVICE_QUALITY
   VEHICLE_CONDITION
+  FRAUD
+  HARASSMENT
   OTHER
 }
 
@@ -693,6 +1040,7 @@ enum ReportStatus {
   RESOLVED
   DISMISSED
   ESCALATED
+  REQUIRES_ACTION
 }
 
 model Attachment {
@@ -706,7 +1054,7 @@ model Attachment {
   @@map("attachments")
 }
 
-// ===== NOTIFICATION SYSTEM =====
+// ===== NOTIFICATION SYSTEM (Enhanced) =====
 
 model Notification {
   id          String            @id @default(uuid())
@@ -717,6 +1065,8 @@ model Notification {
   type        NotificationType
   data        String?           // JSON data
   isRead      Boolean           @default(false)
+  priority    PriorityLevel     @default(STANDARD)
+  expiresAt   DateTime?
   createdAt   DateTime          @default(now())
   
   @@map("notifications")
@@ -731,9 +1081,11 @@ enum NotificationType {
   DRIVER_ASSIGNED
   DELIVERY_UPDATE
   PLACE_RECOMMENDATION
+  SAFETY_ALERT
+  MAINTENANCE
 }
 
-// ===== RECOMMENDED PLACE SYSTEM =====
+// ===== RECOMMENDED PLACE SYSTEM (Enhanced) =====
 
 model Survey {
   id              String        @id @default(uuid())
@@ -782,6 +1134,8 @@ model Place {
   location        Location?     @relation(fields: [locationId], references: [id])
   categoryId      String
   category        PlaceCategory @relation(fields: [categoryId], references: [id])
+  ownerId         String?
+  owner           PlaceOwnerProfile? @relation(fields: [ownerId], references: [id])
   rating          Float?        // Average rating if available
   priceLevel      PriceLevel?   // Price indicator
   contactInfo     String?
@@ -791,15 +1145,27 @@ model Place {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   isActive        Boolean       @default(true)
+  isApproved      Boolean       @default(false)
+  approvedBy      String?       // Admin user ID
+  approvedAt      DateTime?
   
   // AI training and recommendation metrics
   recommendationScore Float     @default(0)  // Computed score for recommendations
   viewCount       Int           @default(0)  // How many times shown in surveys
   
+  // Enhanced features
+  capacity        Int?          // Maximum capacity for events/restaurants
+  isSeasonallyAvailable Boolean @default(true)
+  seasonalStart   DateTime?
+  seasonalEnd     DateTime?
+  
   // Relations
   placeVotes      PlaceVote[]   // Votes for this place
   placeAttributes PlaceAttribute[] // Detailed attributes of this place
+  placePhotos     PlacePhoto[]  // Photo gallery
+  placeEvents     PlaceEvent[]  // Events at this place
   service         Service[]
+  
   @@map("places")
 }
 
@@ -808,6 +1174,32 @@ enum PriceLevel {
   MODERATE
   EXPENSIVE
   LUXURY
+}
+
+model PlacePhoto {
+  id          String    @id @default(uuid())
+  placeId     String
+  place       Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  photoUrl    String
+  caption     String?
+  isApproved  Boolean   @default(false)
+  uploadedBy  String?   // User ID who uploaded
+  uploadedAt  DateTime  @default(now())
+  
+  @@map("place_photos")
+}
+
+model PlaceEvent {
+  id          String    @id @default(uuid())
+  placeId     String
+  place       Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  
+  @@map("place_events")
 }
 
 model PlaceVote {
@@ -871,14 +1263,77 @@ model RecommendationModel {
   @@map("recommendation_models")
 }
 
-// ===== SYSTEM CONFIGURATION =====
+// ===== SYSTEM CONFIGURATION (Enhanced) =====
 
 model SystemConfig {
   id          String    @id @default(uuid())
   key         String    @unique
   value       String
   description String?
+  category    String?   // Group related configs
+  isPublic    Boolean   @default(false) // Whether config can be read by non-admins
+  updatedBy   String?   // Admin user ID
   updatedAt   DateTime  @updatedAt
   
   @@map("system_configs")
+}
+
+// ===== FINANCIAL MANAGEMENT =====
+
+model Commission {
+  id              String        @id @default(uuid())
+  serviceId       String        @unique
+  service         Service       @relation(fields: [serviceId], references: [id])
+  platformFee     Float         // Amount taken by platform
+  driverEarnings  Float?        // Amount driver receives
+  storeEarnings   Float?        // Amount store receives
+  placeOwnerFee   Float?        // Premium listing fee for place owners
+  calculatedAt    DateTime      @default(now())
+  
+  @@map("commissions")
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  businessId      String        // Store or Place owner ID
+  businessType    BusinessType
+  amount          Float
+  description     String
+  status          InvoiceStatus @default(PENDING)
+  dueDate         DateTime
+  paidDate        DateTime?
+  createdAt       DateTime      @default(now())
+  
+  @@map("invoices")
+}
+
+enum BusinessType {
+  STORE
+  PLACE
+  MOVING_COMPANY
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ===== AUDIT TRAIL =====
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  userId      String?   // User who performed the action
+  user        User?     @relation(fields: [userId], references: [id]) // Add this relation
+  action      String    // Action performed
+  resource    String    // Resource affected (table name)
+  resourceId  String?   // ID of the affected resource
+  oldValues   String?   // JSON of old values
+  newValues   String?   // JSON of new values
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime  @default(now())
+  
+  @@map("audit_logs")
 }

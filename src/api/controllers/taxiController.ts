@@ -129,15 +129,17 @@ export const bookTaxi = async (req: Request, res: Response) => {
     })
 
     // Create payment
-    await prisma.payment.create({
-      data: {
-        serviceId: service.id,
-        userId,
-        amount: service.estimatedPrice || 15.0,
-        paymentMethod: "CASH",
-        status: "PENDING",
-      },
-    })
+ // Create payment
+await prisma.payment.create({
+  data: {
+    serviceId: service.id,
+    userId,
+    amount: service.estimatedPrice || 15.0,
+    platformFee: service.estimatedPrice ? service.estimatedPrice * (taxiType.commissionRate || 0.18) : 2.7, // 18% of estimatedPrice or default
+    paymentMethod: "CASH",
+    status: "PENDING",
+  },
+});
 
     if (nearestDriver) {
       await prisma.driverProfile.update({
