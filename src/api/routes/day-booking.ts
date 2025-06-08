@@ -8,19 +8,19 @@ import {
   bookDriverForDay,
   getBookingHistory,
 } from "../controllers/dayBookingController"
-import { requireAuth } from "@clerk/express"
 import { driverOnly } from "../controllers/serviceController"
+import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // User routes
-router.get("/availability", requireAuth(), checkDriverAvailability)
-router.get("/pricing", requireAuth(), getDayBookingPricing)
-router.post("/book", requireAuth(), bookDriverForDay)
-router.get("/history", requireAuth(), getBookingHistory)
+router.get("/availability", authMiddleware,driverOnly, checkDriverAvailability)
+router.get("/pricing", authMiddleware,driverOnly, getDayBookingPricing)
+router.post("/book", authMiddleware,driverOnly, bookDriverForDay)
+router.get("/history", authMiddleware,driverOnly, getBookingHistory)
 
 // Driver routes
-router.post("/set-price", requireAuth(), driverOnly, setDriverPrice)
-router.post("/schedule", requireAuth(), driverOnly, setDriverSchedule)
+router.post("/set-price", authMiddleware,driverOnly, driverOnly, setDriverPrice)
+router.post("/schedule", authMiddleware,driverOnly, driverOnly, setDriverSchedule)
 
 export default router

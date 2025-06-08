@@ -13,23 +13,23 @@ import {
   deleteVehicle,
   getExpiringDocuments,
 } from "../controllers/vehicleController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware, superAdminOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Vehicle Type Routes
-router.post("/types", requireAuth(), createVehicleType)
-router.get("/types", requireAuth(), getVehicleTypes)
-router.get("/types/:id", requireAuth(), getVehicleType)
-router.put("/types/:id", requireAuth(), updateVehicleType)
-router.delete("/types/:id", requireAuth(), deleteVehicleType)
+router.post("/types", authMiddleware,superAdminOnly, createVehicleType)
+router.get("/types", authMiddleware,superAdminOnly, getVehicleTypes)
+router.get("/types/:id", authMiddleware,superAdminOnly, getVehicleType)
+router.put("/types/:id", authMiddleware,superAdminOnly, updateVehicleType)
+router.delete("/types/:id", authMiddleware,superAdminOnly, deleteVehicleType)
 
 // Vehicle Routes
-router.post("/", requireAuth(), createVehicle)
-router.get("/", requireAuth(), getVehicles)
-router.get("/expiring-documents", requireAuth(), getExpiringDocuments)
-router.get("/:id", requireAuth(), getVehicle)
-router.put("/:id", requireAuth(), updateVehicle)
-router.delete("/:id", requireAuth(), deleteVehicle)
+router.post("/", authMiddleware,superAdminOnly, createVehicle)
+router.get("/", authMiddleware,superAdminOnly, getVehicles)
+router.get("/expiring-documents", authMiddleware,superAdminOnly, getExpiringDocuments)
+router.get("/:id", authMiddleware,superAdminOnly, getVehicle)
+router.put("/:id", authMiddleware,superAdminOnly, updateVehicle)
+router.delete("/:id", authMiddleware,superAdminOnly, deleteVehicle)
 
 export default router

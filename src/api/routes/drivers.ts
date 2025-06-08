@@ -6,13 +6,13 @@ import {
   getDriverProfile,
   updateDriverStatus,
 } from "../controllers/driverController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware, driverOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
-router.post("/", requireAuth(), createDriverProfile)
-router.put("/", requireAuth(), updateDriverProfile)
-router.get("/", requireAuth(), getDriverProfile)
-router.patch("/status", requireAuth(), updateDriverStatus)
+router.post("/", authMiddleware,driverOnly, createDriverProfile)
+router.put("/", authMiddleware,driverOnly, updateDriverProfile)
+router.get("/", authMiddleware,driverOnly, getDriverProfile)
+router.patch("/status", authMiddleware,driverOnly, updateDriverStatus)
 
 export default router

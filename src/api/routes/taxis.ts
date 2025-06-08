@@ -1,10 +1,10 @@
 //taxis.ts
 import { Router } from "express"
 import { bookTaxi } from "../controllers/taxiController"
-import { requireAuth } from "@clerk/express"
+import { driverOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
-router.post("/book", requireAuth(), bookTaxi)
+router.post("/book", driverOnly, bookTaxi)
 
 export default router

@@ -8,16 +8,16 @@ import {
   findNearbyLocations,
   checkLocationInZone,
 } from "../controllers/locationMapboxController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Mapbox-powered Location Routes
-router.post("/", requireAuth(), createLocation)
-router.post("/geocode", requireAuth(), geocodeLocation)
-router.post("/reverse-geocode", requireAuth(), reverseGeocodeLocation)
-router.post("/route", requireAuth(), getRouteDetails)
-router.get("/nearby", requireAuth(), findNearbyLocations)
-router.get("/:locationId/in-zone/:zoneId", requireAuth(), checkLocationInZone)
+router.post("/", authMiddleware, createLocation)
+router.post("/geocode", authMiddleware, geocodeLocation)
+router.post("/reverse-geocode", authMiddleware, reverseGeocodeLocation)
+router.post("/route", authMiddleware, getRouteDetails)
+router.get("/nearby", authMiddleware, findNearbyLocations)
+router.get("/:locationId/in-zone/:zoneId", authMiddleware, checkLocationInZone)
 
 export default router

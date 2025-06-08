@@ -7,18 +7,18 @@ import {
   updateDeliveryStatus,
   getDeliveryHistory,
 } from "../controllers/deliveryController"
-import { requireAuth } from "@clerk/express"
 import { driverOnly } from "../controllers/serviceController"
+import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Customer routes
-router.post("/estimate", requireAuth(), estimateDelivery)
-router.post("/order", requireAuth(), createDeliveryOrder)
-router.get("/:id", requireAuth(), getDeliveryDetails)
-router.get("/history", requireAuth(), getDeliveryHistory)
+router.post("/estimate", authMiddleware, estimateDelivery)
+router.post("/order", authMiddleware, createDeliveryOrder)
+router.get("/:id", authMiddleware, getDeliveryDetails)
+router.get("/history", authMiddleware, getDeliveryHistory)
 
 // Driver routes
-router.put("/:id/status", requireAuth(), driverOnly, updateDeliveryStatus)
+router.put("/:id/status", authMiddleware, driverOnly, updateDeliveryStatus)
 
 export default router

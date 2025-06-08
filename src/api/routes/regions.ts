@@ -14,22 +14,23 @@ import {
   deleteDistrict,
 } from "../controllers/locationController"
 import { requireAuth } from "@clerk/express"
+import { authMiddleware, cityAdminOrAbove } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Region Routes
-router.post("/", requireAuth(), createRegion)
-router.get("/", requireAuth(), getRegions)
-router.get("/hierarchy", requireAuth(), getRegionHierarchy)
-router.get("/:id", requireAuth(), getRegion)
-router.put("/:id", requireAuth(), updateRegion)
-router.delete("/:id", requireAuth(), deleteRegion)
+router.post("/", authMiddleware,cityAdminOrAbove, createRegion)
+router.get("/", authMiddleware,cityAdminOrAbove, getRegions)
+router.get("/hierarchy", authMiddleware,cityAdminOrAbove, getRegionHierarchy)
+router.get("/:id", authMiddleware,cityAdminOrAbove, getRegion)
+router.put("/:id", authMiddleware,cityAdminOrAbove, updateRegion)
+router.delete("/:id", authMiddleware,cityAdminOrAbove, deleteRegion)
 
 // District Routes
-router.post("/districts", requireAuth(), createDistrict)
-router.get("/districts", requireAuth(), getDistricts)
-router.get("/districts/:id", requireAuth(), getDistrict)
-router.put("/districts/:id", requireAuth(), updateDistrict)
-router.delete("/districts/:id", requireAuth(), deleteDistrict)
+router.post("/districts", authMiddleware,cityAdminOrAbove, createDistrict)
+router.get("/districts", authMiddleware,cityAdminOrAbove, getDistricts)
+router.get("/districts/:id", authMiddleware,cityAdminOrAbove, getDistrict)
+router.put("/districts/:id", authMiddleware,cityAdminOrAbove, updateDistrict)
+router.delete("/districts/:id", authMiddleware,cityAdminOrAbove, deleteDistrict)
 
 export default router

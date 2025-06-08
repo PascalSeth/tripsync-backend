@@ -7,15 +7,15 @@ import {
   updateTaxiStand,
   deleteTaxiStand,
 } from "../controllers/taxiStandController"
-import { requireAuth } from "@clerk/express"
+import { cityAdminOrAbove } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Taxi Stand Routes
-router.post("/", requireAuth(), createTaxiStand)
-router.get("/", requireAuth(), getTaxiStands)
-router.get("/:id", requireAuth(), getTaxiStand)
-router.put("/:id", requireAuth(), updateTaxiStand)
-router.delete("/:id", requireAuth(), deleteTaxiStand)
+router.post("/", cityAdminOrAbove, createTaxiStand)
+router.get("/", cityAdminOrAbove, getTaxiStands)
+router.get("/:id", cityAdminOrAbove, getTaxiStand)
+router.put("/:id", cityAdminOrAbove, updateTaxiStand)
+router.delete("/:id", cityAdminOrAbove, deleteTaxiStand)
 
 export default router

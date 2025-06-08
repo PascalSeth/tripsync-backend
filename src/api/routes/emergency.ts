@@ -7,18 +7,17 @@ import {
   getEmergencyHistory,
   cancelEmergencyRequest,
 } from "../controllers/emergencyController"
-import { requireAuth } from "@clerk/express"
-import { driverOnly } from "../controllers/serviceController"
+import { authMiddleware, driverOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // User routes
-router.post("/request", requireAuth(), requestEmergencyService)
-router.get("/:id", requireAuth(), getEmergencyServiceDetails)
-router.get("/history", requireAuth(), getEmergencyHistory)
-router.post("/:id/cancel", requireAuth(), cancelEmergencyRequest)
+router.post("/request", authMiddleware, requestEmergencyService)
+router.get("/:id", authMiddleware, getEmergencyServiceDetails)
+router.get("/history", authMiddleware, getEmergencyHistory)
+router.post("/:id/cancel", authMiddleware, cancelEmergencyRequest)
 
 // Driver routes
-router.put("/:id/status", requireAuth(), driverOnly, updateEmergencyStatus)
+router.put("/:id/status", authMiddleware, driverOnly, updateEmergencyStatus)
 
 export default router

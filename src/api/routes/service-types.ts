@@ -10,20 +10,20 @@ import {
   removeDriverFromServiceType,
   getDriversForServiceType,
 } from "../controllers/serviceTypeController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Service Type Routes
-router.post("/", requireAuth(), createServiceType)
-router.get("/", requireAuth(), getServiceTypes)
-router.get("/:id", requireAuth(), getServiceType)
-router.put("/:id", requireAuth(), updateServiceType)
-router.delete("/:id", requireAuth(), deleteServiceType)
+router.post("/", authMiddleware, createServiceType)
+router.get("/", authMiddleware, getServiceTypes)
+router.get("/:id", authMiddleware, getServiceType)
+router.put("/:id", authMiddleware, updateServiceType)
+router.delete("/:id", authMiddleware, deleteServiceType)
 
 // Driver Assignment Routes
-router.post("/assign-driver", requireAuth(), assignDriverToServiceType)
-router.delete("/:serviceTypeId/drivers/:driverProfileId", requireAuth(), removeDriverFromServiceType)
-router.get("/:id/drivers", requireAuth(), getDriversForServiceType)
+router.post("/assign-driver", authMiddleware, assignDriverToServiceType)
+router.delete("/:serviceTypeId/drivers/:driverProfileId", authMiddleware, removeDriverFromServiceType)
+router.get("/:id/drivers", authMiddleware, getDriversForServiceType)
 
 export default router

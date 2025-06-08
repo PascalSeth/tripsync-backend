@@ -9,15 +9,15 @@ import {
   getServiceHistory,
   getService,
 } from "../controllers/serviceController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
-router.post("/request", requireAuth(), requestRide)
-router.post("/accept", requireAuth(), driverOnly, acceptRide)
-router.put("/status", requireAuth(), driverOnly, updateServiceStatus)
-router.put("/driver/location", requireAuth(), driverOnly, updateDriverLocation)
-router.get("/history", requireAuth(), getServiceHistory)
-router.get("/:id", requireAuth(), getService)
+router.post("/request",authMiddleware, requestRide)
+router.post("/accept",authMiddleware, driverOnly, acceptRide)
+router.put("/status",authMiddleware, driverOnly, updateServiceStatus)
+router.put("/driver/location",authMiddleware, driverOnly, updateDriverLocation)
+router.get("/history",authMiddleware, getServiceHistory)
+router.get("/:id",authMiddleware, getService)
 
 export default router

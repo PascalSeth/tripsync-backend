@@ -9,20 +9,20 @@ import {
   getTaxiZoneAnalytics,
 } from "../controllers/taxiZoneController"
 import { findZoneForLocation, getZoneOverlap } from "../controllers/taxiZoneMapboxController"
-import { requireAuth } from "@clerk/express"
+import { cityAdminOrAbove } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Taxi Zone Routes
-router.post("/", requireAuth(), createTaxiZone)
-router.get("/", requireAuth(), getTaxiZones)
-router.get("/:id", requireAuth(), getTaxiZone)
-router.get("/:id/analytics", requireAuth(), getTaxiZoneAnalytics)
-router.put("/:id", requireAuth(), updateTaxiZone)
-router.delete("/:id", requireAuth(), deleteTaxiZone)
+router.post("/", cityAdminOrAbove, createTaxiZone)
+router.get("/", cityAdminOrAbove, getTaxiZones)
+router.get("/:id", cityAdminOrAbove, getTaxiZone)
+router.get("/:id/analytics", cityAdminOrAbove, getTaxiZoneAnalytics)
+router.put("/:id", cityAdminOrAbove, updateTaxiZone)
+router.delete("/:id", cityAdminOrAbove, deleteTaxiZone)
 
 // Mapbox-powered Taxi Zone Routes
-router.post("/find-for-location", requireAuth(), findZoneForLocation)
-router.get("/:zoneId/overlaps", requireAuth(), getZoneOverlap)
+router.post("/find-for-location", cityAdminOrAbove, findZoneForLocation)
+router.get("/:zoneId/overlaps", cityAdminOrAbove, getZoneOverlap)
 
 export default router

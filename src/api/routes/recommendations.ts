@@ -18,28 +18,29 @@ import {
   deleteRecommendationModel,
 } from "../controllers/placeController"
 import { requireAuth } from "@clerk/express"
+import { authMiddleware, superAdminOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Place Category Routes
-router.post("/categories", requireAuth(), createPlaceCategory)
-router.get("/categories", requireAuth(), getPlaceCategories)
-router.get("/categories/:id", requireAuth(), getPlaceCategory)
-router.put("/categories/:id", requireAuth(), updatePlaceCategory)
-router.delete("/categories/:id", requireAuth(), deletePlaceCategory)
+router.post("/categories", authMiddleware,superAdminOnly, createPlaceCategory)
+router.get("/categories", authMiddleware,superAdminOnly, getPlaceCategories)
+router.get("/categories/:id", authMiddleware,superAdminOnly, getPlaceCategory)
+router.put("/categories/:id", authMiddleware,superAdminOnly, updatePlaceCategory)
+router.delete("/categories/:id", authMiddleware,superAdminOnly, deletePlaceCategory)
 
 // Place Routes
-router.post("/places", requireAuth(), createPlace)
-router.get("/places", requireAuth(), getPlaces)
-router.get("/places/:id", requireAuth(), getPlace)
-router.put("/places/:id", requireAuth(), updatePlace)
-router.delete("/places/:id", requireAuth(), deletePlace)
+router.post("/places", authMiddleware,superAdminOnly, createPlace)
+router.get("/places", authMiddleware,superAdminOnly, getPlaces)
+router.get("/places/:id", authMiddleware,superAdminOnly, getPlace)
+router.put("/places/:id", authMiddleware,superAdminOnly, updatePlace)
+router.delete("/places/:id", authMiddleware,superAdminOnly, deletePlace)
 
 // Recommendation Model Routes
-router.post("/models", requireAuth(), createRecommendationModel)
-router.get("/models", requireAuth(), getRecommendationModels)
-router.get("/models/:id", requireAuth(), getRecommendationModel)
-router.put("/models/:id", requireAuth(), updateRecommendationModel)
-router.delete("/models/:id", requireAuth(), deleteRecommendationModel)
+router.post("/models", authMiddleware,superAdminOnly, createRecommendationModel)
+router.get("/models", authMiddleware,superAdminOnly, getRecommendationModels)
+router.get("/models/:id", authMiddleware,superAdminOnly, getRecommendationModel)
+router.put("/models/:id", authMiddleware,superAdminOnly, updateRecommendationModel)
+router.delete("/models/:id", authMiddleware,superAdminOnly, deleteRecommendationModel)
 
 export default router

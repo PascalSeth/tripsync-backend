@@ -25,7 +25,7 @@ import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
-// Registration routes
+// Registration routes - no authentication required
 router.post(
   "/register",
   asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -71,7 +71,7 @@ router.post(
   }),
 )
 
-// Login/Logout routes
+// Login route - no authentication required
 router.post(
   "/login",
   asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -81,6 +81,7 @@ router.post(
   }),
 )
 
+// Logout route - requires JWT bearer token
 router.post(
   "/logout",
   authMiddleware,
@@ -95,7 +96,7 @@ router.post(
   }),
 )
 
-// Two-factor authentication routes
+// Two-factor authentication routes - require JWT bearer token
 router.post(
   "/2fa/setup",
   authMiddleware,

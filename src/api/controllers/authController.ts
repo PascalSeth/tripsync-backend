@@ -1,6 +1,5 @@
 //Auth Controller
 import { prisma } from "../../config/prisma"
-import { clerkClient } from "@clerk/express"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { env } from "../../config/env"
@@ -58,28 +57,21 @@ export const twoFactorSchema = z.object({
 
 export const register = async (data: z.infer<typeof registerSchema>) => {
   try {
-    // Create user in Clerk
-    const clerkUser = await clerkClient.users
-      .createUser({
-        emailAddress: [data.email],
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        skipPasswordChecks: false,
-      })
-      .catch((error: any) => {
-        const message = error.errors?.[0]?.message || error.message || "Unknown Clerk error"
-        const status = error.status || 500
-        throw new Error(`Clerk createUser failed: ${message} (Status: ${status})`)
-      })
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    })
+
+    if (existingUser) {
+      throw new Error("User already exists with this email")
+    }
 
     // Hash password for database
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
-    // Create user in database with hashed password
+    // Create user in database
     const user = await prisma.user.create({
       data: {
-        id: clerkUser.id,
         email: data.email,
         password: hashedPassword,
         firstName: data.firstName,
@@ -109,20 +101,14 @@ export const register = async (data: z.infer<typeof registerSchema>) => {
 
 export const registerDriver = async (data: z.infer<typeof driverRegisterSchema>) => {
   try {
-    // Create user in Clerk
-    const clerkUser = await clerkClient.users
-      .createUser({
-        emailAddress: [data.email],
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        skipPasswordChecks: false,
-      })
-      .catch((error: any) => {
-        const message = error.errors?.[0]?.message || error.message || "Unknown Clerk error"
-        const status = error.status || 500
-        throw new Error(`Clerk createUser failed: ${message} (Status: ${status})`)
-      })
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    })
+
+    if (existingUser) {
+      throw new Error("User already exists with this email")
+    }
 
     // Hash password for database
     const hashedPassword = await bcrypt.hash(data.password, 10)
@@ -130,7 +116,6 @@ export const registerDriver = async (data: z.infer<typeof driverRegisterSchema>)
     // Create user and driver profile in database
     const user = await prisma.user.create({
       data: {
-        id: clerkUser.id,
         email: data.email,
         password: hashedPassword,
         firstName: data.firstName,
@@ -170,19 +155,19 @@ export const registerDriver = async (data: z.infer<typeof driverRegisterSchema>)
 
 export const registerStoreOwner = async (data: z.infer<typeof storeOwnerRegisterSchema>) => {
   try {
-    const clerkUser = await clerkClient.users.createUser({
-      emailAddress: [data.email],
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      skipPasswordChecks: false,
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
     })
+
+    if (existingUser) {
+      throw new Error("User already exists with this email")
+    }
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
     const user = await prisma.user.create({
       data: {
-        id: clerkUser.id,
         email: data.email,
         password: hashedPassword,
         firstName: data.firstName,
@@ -218,19 +203,19 @@ export const registerStoreOwner = async (data: z.infer<typeof storeOwnerRegister
 
 export const registerPlaceOwner = async (data: z.infer<typeof placeOwnerRegisterSchema>) => {
   try {
-    const clerkUser = await clerkClient.users.createUser({
-      emailAddress: [data.email],
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      skipPasswordChecks: false,
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
     })
+
+    if (existingUser) {
+      throw new Error("User already exists with this email")
+    }
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
     const user = await prisma.user.create({
       data: {
-        id: clerkUser.id,
         email: data.email,
         password: hashedPassword,
         firstName: data.firstName,
@@ -266,19 +251,19 @@ export const registerPlaceOwner = async (data: z.infer<typeof placeOwnerRegister
 
 export const registerEmergencyResponder = async (data: z.infer<typeof emergencyResponderRegisterSchema>) => {
   try {
-    const clerkUser = await clerkClient.users.createUser({
-      emailAddress: [data.email],
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      skipPasswordChecks: false,
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
     })
+
+    if (existingUser) {
+      throw new Error("User already exists with this email")
+    }
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
     const user = await prisma.user.create({
       data: {
-        id: clerkUser.id,
         email: data.email,
         password: hashedPassword,
         firstName: data.firstName,
@@ -314,14 +299,7 @@ export const registerEmergencyResponder = async (data: z.infer<typeof emergencyR
 }
 
 export const login = async (data: z.infer<typeof loginSchema>) => {
-  // Verify with Clerk
-  const clerkUsers = await clerkClient.users.getUserList({ emailAddress: [data.email] })
-  const clerkUser = clerkUsers.data?.[0]
-  if (!clerkUser) {
-    throw new Error("User not found")
-  }
-
-  // Verify password in database
+  // Find user in database
   const user = await prisma.user.findUnique({
     where: { email: data.email },
     include: {

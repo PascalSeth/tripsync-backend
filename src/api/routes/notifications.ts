@@ -9,17 +9,17 @@ import {
   createBroadcastNotification,
   getNotificationStats,
 } from "../controllers/notificationController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware, superAdminOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
 // Admin Notification Routes
-router.post("/admin/notifications", requireAuth(), createNotification)
-router.get("/admin/notifications", requireAuth(), getNotifications)
-router.put("/admin/notifications/:id/read", requireAuth(), markNotificationAsRead)
-router.post("/admin/notifications/mark-all-read", requireAuth(), markAllNotificationsAsRead)
-router.delete("/admin/notifications/:id", requireAuth(), deleteNotification)
-router.post("/admin/notifications/broadcast", requireAuth(), createBroadcastNotification)
-router.get("/admin/notifications/stats", requireAuth(), getNotificationStats)
+router.post("/admin/notifications", superAdminOnly,authMiddleware, createNotification)
+router.get("/admin/notifications", superAdminOnly,authMiddleware, getNotifications)
+router.put("/admin/notifications/:id/read", superAdminOnly,authMiddleware, markNotificationAsRead)
+router.post("/admin/notifications/mark-all-read", superAdminOnly,authMiddleware, markAllNotificationsAsRead)
+router.delete("/admin/notifications/:id", superAdminOnly,authMiddleware, deleteNotification)
+router.post("/admin/notifications/broadcast", superAdminOnly,authMiddleware, createBroadcastNotification)
+router.get("/admin/notifications/stats", superAdminOnly,authMiddleware, getNotificationStats)
 
 export default router

@@ -7,14 +7,14 @@ import {
   checkGroupStatus,
   leaveSharedRide,
 } from "../controllers/sharedRideController"
-import { requireAuth } from "@clerk/express"
+import { authMiddleware } from "../middlewares/authMiddleware"
 
 const router = Router()
 
-router.post("/estimate", requireAuth(), estimateSharedRide)
-router.post("/book", requireAuth(), bookSharedRide)
-router.get("/:id", requireAuth(), getSharedRideDetails)
-router.get("/:id/status", requireAuth(), checkGroupStatus)
-router.post("/:id/leave", requireAuth(), leaveSharedRide)
+router.post("/estimate",authMiddleware, estimateSharedRide)
+router.post("/book",authMiddleware, bookSharedRide)
+router.get("/:id",authMiddleware, getSharedRideDetails)
+router.get("/:id/status",authMiddleware, checkGroupStatus)
+router.post("/:id/leave",authMiddleware, leaveSharedRide)
 
 export default router
