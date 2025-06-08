@@ -85,6 +85,384 @@ const uploadFileToSupabase = async (file: UploadedFile, userId: string, field: s
   const { publicUrl } = supabase.storage.from("driver-documents").getPublicUrl(filePath).data
   return publicUrl
 }
+// Schema for updating driver location
+export const updateDriverLocationSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  address: z.string(),
+  city: z.string(),
+  state: z.string().optional(),
+  country: z.string(),
+  postalCode: z.string().optional(),
+  placeId: z.string().optional(),
+  gpsAccuracy: z.number().optional(),
+})
+
+// Schema for toggling driver availability
+export const toggleDriverAvailabilitySchema = z.object({
+  isAvailableForDayBooking: z.boolean(),
+  dayBookingPrice: z.number().optional(),
+})
+
+// Update Driver Location
+export const updateDriverLocation = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth?.userId
+    const data = updateDriverLocationSchema.parse(req.body)
+
+    // Check if driver profile exists
+    const profile = await prisma.driverProfile.findUnique({
+      where: { userId },
+    })
+    if (!profile) {
+      return res.status(404).json({ error: "Driver profile not found" })
+    }
+
+    // Create or update location
+    const location = await prisma.location.upsert({
+      where: { id: profile.currentLocationId || "non-existent-id" },
+      update: {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        postalCode: data.postalCode,
+        placeId: data.placeId,
+        gpsAccuracy: data.gpsAccuracy,
+      },
+      create: {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        postalCode: data.postalCode,
+        placeId: data.placeId,
+        gpsAccuracy: data.gpsAccuracy,
+      },
+    })
+
+    // Update driver profile with location
+    await prisma.driverProfile.update({
+      where: { userId },
+      data: {
+        currentLocationId: location.id,
+        lastActiveAt: new Date(),
+      },
+    })
+
+    // Emit Socket.IO event for real-time location update
+    ;(req as any).io?.to(`driver:${userId}`).emit("driver:location_updated", {
+      driverId: userId,
+      location: {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.address,
+      },
+    })
+
+    res.json({
+      message: "Location updated successfully",
+      location,
+    })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+}
+
+// Toggle Driver Availability
+export const toggleDriverAvailability = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth?.userId
+    const data = toggleDriverAvailabilitySchema.parse(req.body)
+
+    const profile = await prisma.driverProfile.findUnique({
+      where: { userId },
+    })
+    if (!profile) {
+      return res.status(404).json({ error: "Driver profile not found" })
+    }
+
+    // If enabling day booking availability, ensure price is set
+    if (data.isAvailableForDayBooking && !data.dayBookingPrice && !profile.dayBookingPrice) {
+      return res.status(400).json({ 
+        error: "Day booking price is required when enabling day booking availability" 
+      })
+    }
+
+    const updateData: any = {
+      isAvailableForDayBooking: data.isAvailableForDayBooking,
+    }
+
+    if (data.dayBookingPrice) {
+      updateData.dayBookingPrice = data.dayBookingPrice
+    }
+
+    const updatedProfile = await prisma.driverProfile.update({
+      where: { userId },
+      data: updateData,
+    })
+
+    // Emit Socket.IO event for availability change
+    ;(req as any).io?.to(`driver:${userId}`).emit("driver:availability_updated", {
+      driverId: userId,
+      isAvailableForDayBooking: data.isAvailableForDayBooking,
+      dayBookingPrice: data.dayBookingPrice || profile.dayBookingPrice,
+    })
+
+    res.json({
+      message: "Availability updated successfully",
+      profile: updatedProfile,
+    })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+}
+
+// Get Driver Bookings
+export const getDriverBookings = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth?.userId
+    const { status, page = 1, limit = 10, dateFrom, dateTo } = req.query
+
+    // Check if driver profile exists
+    const profile = await prisma.driverProfile.findUnique({
+      where: { userId },
+    })
+    if (!profile) {
+      return res.status(404).json({ error: "Driver profile not found" })
+    }
+
+    // Build filter conditions
+    const whereConditions: any = {
+      driverId: userId,
+    }
+
+    if (status) {
+      whereConditions.status = status
+    }
+
+    if (dateFrom || dateTo) {
+      whereConditions.createdAt = {}
+      if (dateFrom) {
+        whereConditions.createdAt.gte = new Date(dateFrom as string)
+      }
+      if (dateTo) {
+        whereConditions.createdAt.lte = new Date(dateTo as string)
+      }
+    }
+
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string)
+
+    // Get bookings with related data
+    const bookings = await prisma.service.findMany({
+      where: whereConditions,
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            profileImage: true,
+          },
+        },
+        serviceType: true,
+        pickupLocation: true,
+        dropoffLocation: true,
+        payment: true,
+        review: true,
+        district: true,
+        store: {
+          include: {
+            location: true,
+          },
+        },
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: parseInt(limit as string),
+    })
+
+    // Get total count for pagination
+    const totalCount = await prisma.service.count({
+      where: whereConditions,
+    })
+
+    const totalPages = Math.ceil(totalCount / parseInt(limit as string))
+
+    res.json({
+      bookings,
+      pagination: {
+        currentPage: parseInt(page as string),
+        totalPages,
+        totalCount,
+        hasNextPage: parseInt(page as string) < totalPages,
+        hasPreviousPage: parseInt(page as string) > 1,
+      },
+    })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+}
+
+// Get Driver Earnings
+export const getDriverEarnings = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth?.userId
+    const { period = 'monthly', year, month } = req.query
+
+    // Check if driver profile exists
+    const profile = await prisma.driverProfile.findUnique({
+      where: { userId },
+    })
+    if (!profile) {
+      return res.status(404).json({ error: "Driver profile not found" })
+    }
+
+    // Build date filter based on period
+    let dateFilter: any = {}
+    const now = new Date()
+    
+    switch (period) {
+      case 'daily':
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        dateFilter = {
+          paymentDate: {
+            gte: today,
+            lt: tomorrow,
+          },
+        }
+        break
+      
+      case 'weekly':
+        const weekStart = new Date()
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+        weekStart.setHours(0, 0, 0, 0)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekEnd.getDate() + 7)
+        dateFilter = {
+          paymentDate: {
+            gte: weekStart,
+            lt: weekEnd,
+          },
+        }
+        break
+      
+      case 'monthly':
+        const monthStart = new Date(
+          parseInt(year as string) || now.getFullYear(),
+          parseInt(month as string) - 1 || now.getMonth(),
+          1
+        )
+        const monthEnd = new Date(monthStart)
+        monthEnd.setMonth(monthEnd.getMonth() + 1)
+        dateFilter = {
+          paymentDate: {
+            gte: monthStart,
+            lt: monthEnd,
+          },
+        }
+        break
+      
+      case 'yearly':
+        const yearStart = new Date(parseInt(year as string) || now.getFullYear(), 0, 1)
+        const yearEnd = new Date(yearStart)
+        yearEnd.setFullYear(yearEnd.getFullYear() + 1)
+        dateFilter = {
+          paymentDate: {
+            gte: yearStart,
+            lt: yearEnd,
+          },
+        }
+        break
+    }
+
+    // Get earnings data
+    const payments = await prisma.payment.findMany({
+      where: {
+        service: {
+          driverId: userId,
+        },
+        status: 'PAID',
+        ...dateFilter,
+      },
+      include: {
+        service: {
+          include: {
+            serviceType: true,
+          },
+        },
+      },
+      orderBy: {
+        paymentDate: 'desc',
+      },
+    })
+
+    // Calculate earnings summary
+    const totalEarnings = payments.reduce((sum, payment) => sum + (payment.driverEarnings || 0), 0)
+    const totalRides = payments.length
+    const totalPlatformFees = payments.reduce((sum, payment) => sum + payment.platformFee, 0)
+    const totalGrossEarnings = payments.reduce((sum, payment) => sum + payment.amount, 0)
+
+    // Group earnings by service type
+    const earningsByServiceType = payments.reduce((acc: any, payment) => {
+      const serviceTypeName = payment.service.serviceType.name
+      if (!acc[serviceTypeName]) {
+        acc[serviceTypeName] = {
+          count: 0,
+          earnings: 0,
+          grossAmount: 0,
+        }
+      }
+      acc[serviceTypeName].count += 1
+      acc[serviceTypeName].earnings += payment.driverEarnings || 0
+      acc[serviceTypeName].grossAmount += payment.amount
+      return acc
+    }, {})
+
+    // Get average rating
+    const avgRating = await prisma.review.aggregate({
+      where: {
+        service: {
+          driverId: userId,
+        },
+      },
+      _avg: {
+        driverRating: true,
+      },
+    })
+
+    res.json({
+      summary: {
+        totalEarnings,
+        totalRides,
+        totalPlatformFees,
+        totalGrossEarnings,
+        averageEarningsPerRide: totalRides > 0 ? totalEarnings / totalRides : 0,
+        averageRating: avgRating._avg.driverRating || 0,
+      },
+      earningsByServiceType,
+      recentPayments: payments.slice(0, 10), // Last 10 payments
+      period,
+    })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message })
+  }
+}
 
 export const createDriverProfile = async (req: Request, res: Response) => {
   try {

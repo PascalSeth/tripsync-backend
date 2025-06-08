@@ -1,4 +1,3 @@
-//users.ts
 import { Router } from "express"
 import {
   getUsers,
@@ -7,15 +6,15 @@ import {
   updateUserVerification,
   getUserAnalytics,
 } from "../controllers/userController"
-import { superAdminOnly } from "../middlewares/authMiddleware"
+import { authMiddleware, superAdminOnly } from "../middlewares/authMiddleware"
 
 const router = Router()
 
-// Admin User Routes
-router.get("/admin/users",   superAdminOnly, getUsers)
-router.get("/admin/users/:id", superAdminOnly, getUser)
-router.put("/admin/users/:id/status", superAdminOnly, updateUserStatus)
-router.put("/admin/users/:id/verification", superAdminOnly, updateUserVerification)
-router.get("/admin/users/:id/analytics", superAdminOnly, getUserAnalytics)
+// Admin User Routes - all require authentication and admin privileges
+router.get("/", authMiddleware, superAdminOnly, getUsers)
+router.get("/:id", authMiddleware, superAdminOnly, getUser)
+router.put("/:id/status", authMiddleware, superAdminOnly, updateUserStatus)
+router.put("/:id/verification", authMiddleware, superAdminOnly, updateUserVerification)
+router.get("/:id/analytics", authMiddleware, superAdminOnly, getUserAnalytics)
 
 export default router

@@ -1,160 +1,69 @@
 {
   "info": {
-    "name": "TripSync API",
-    "_postman_id": "f7b9e3d2-9c4a-4e9b-a8c7-5d6e4f2b3a1c",
-    "description": "Postman collection for the TripSync API endpoints",
+    "name": "TripSync Backend API",
+    "description": "Complete API collection for TripSync transportation platform",
+    "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "item": [
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
     {
-      "name": "Anonymous",
-      "item": [
-        {
-          "name": "Create Anonymous User",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Guest\", \"gender\": \"PREFER_NOT_TO_SAY\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/anonymous/create",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "anonymous", "create"]
-            }
-          }
-        },
-        {
-          "name": "Get Anonymous User Preferences",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/anonymous/:id/preferences",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "anonymous", ":id", "preferences"],
-              "variable": [{ "key": "id", "value": "anonymousUserId" }]
-            }
-          }
-        },
-        {
-          "name": "Start Survey",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"categoryId\": \"categoryId\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/anonymous/:id/survey",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "anonymous", ":id", "survey"],
-              "variable": [{ "key": "id", "value": "anonymousUserId" }]
-            }
-          }
-        },
-        {
-          "name": "Submit Place Vote",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"placeId\": \"placeId\", \"isLiked\": true}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/anonymous/:id/survey/:surveyId/vote",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "anonymous", ":id", "survey", ":surveyId", "vote"],
-              "variable": [
-                { "key": "id", "value": "anonymousUserId" },
-                { "key": "surveyId", "value": "surveyId" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Complete Survey",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/anonymous/:id/survey/:surveyId/complete",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "anonymous", ":id", "survey", ":surveyId", "complete"],
-              "variable": [
-                { "key": "id", "value": "anonymousUserId" },
-                { "key": "surveyId", "value": "surveyId" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Recommended Places",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/anonymous/:id/recommendations?limit=5&categoryId=categoryId",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "anonymous", ":id", "recommendations"],
-              "query": [
-                { "key": "limit", "value": "5" },
-                { "key": "categoryId", "value": "categoryId" }
-              ],
-              "variable": [{ "key": "id", "value": "anonymousUserId" }]
-            }
-          }
-        }
-      ]
+      "key": "base_url",
+      "value": "https://tripsync-backend-3v2v.onrender.com/api",
+      "type": "string"
     },
     {
-      "name": "Auth",
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "driver_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "service_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
       "item": [
         {
-          "name": "Register",
+          "name": "Register User",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\": \"user@example.com\", \"password\": \"password123\", \"firstName\": \"John\", \"lastName\": \"Doe\", \"phone\": \"1234567890\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+1234567890\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"gender\": \"MALE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "register"]
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
             }
           }
         },
@@ -162,562 +71,234 @@
           "name": "Register Driver",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\": \"driver@example.com\", \"password\": \"password123\", \"firstName\": \"Jane\", \"lastName\": \"Doe\", \"phone\": \"1234567890\", \"driversLicense\": \"ABC123\", \"nationalId\": \"123456789\", \"registrationPic\": \"url_to_pic\", \"driverPic\": \"url_to_pic\", \"licenseExpiryDate\": \"2025-12-31T00:00:00.000Z\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"email\": \"driver@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"phoneNumber\": \"+1234567891\",\n  \"dateOfBirth\": \"1985-05-15\",\n  \"gender\": \"FEMALE\",\n  \"licenseNumber\": \"DL123456789\",\n  \"licenseExpiryDate\": \"2025-12-31\",\n  \"vehicleType\": \"CAR\",\n  \"vehicleModel\": \"Toyota Camry\",\n  \"vehiclePlateNumber\": \"ABC123\",\n  \"vehicleYear\": 2020\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/driver/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "driver", "register"]
+              "raw": "{{base_url}}/auth/driver/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "driver", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Store Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"store@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Store\",\n  \"lastName\": \"Owner\",\n  \"phoneNumber\": \"+1234567892\",\n  \"dateOfBirth\": \"1980-03-20\",\n  \"gender\": \"MALE\",\n  \"storeName\": \"My Store\",\n  \"storeAddress\": \"123 Main St\",\n  \"businessLicense\": \"BL123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/store-owner/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "store-owner", "register"]
             }
           }
         },
         {
           "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', response.token);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\": \"user@example.com\", \"password\": \"password123\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Setup 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/setup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "setup"]
+            }
+          }
+        },
+        {
+          "name": "Verify 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "verify"]
             }
           }
         }
       ]
     },
     {
-      "name": "Dashboard",
+      "name": "Users",
       "item": [
         {
-          "name": "Admin Dashboard Overview",
+          "name": "Get User Profile",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin-overview",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin-overview"]
+              "raw": "{{base_url}}/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile"]
             }
           }
         },
         {
-          "name": "Get Pending Drivers",
+          "name": "Update User Profile",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/drivers/pending",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "drivers", "pending"]
-            }
-          }
-        },
-        {
-          "name": "Approve Driver",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"approve\": true, \"reason\": \"Approved\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"firstName\": \"John Updated\",\n  \"lastName\": \"Doe Updated\",\n  \"phoneNumber\": \"+1234567890\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/drivers/:id/approve",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "drivers", ":id", "approve"],
-              "variable": [{ "key": "id", "value": "driverId" }]
+              "raw": "{{base_url}}/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile"]
             }
           }
         },
         {
-          "name": "Get Driver Performance",
+          "name": "Change Password",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/drivers/:id/performance",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "drivers", ":id", "performance"],
-              "variable": [{ "key": "id", "value": "driverId" }]
-            }
-          }
-        },
-        {
-          "name": "Driver Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/driver/analytics?period=month",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "driver", "analytics"],
-              "query": [{ "key": "period", "value": "month" }]
-            }
-          }
-        },
-        {
-          "name": "Get Active Services",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/services/active",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "services", "active"]
-            }
-          }
-        },
-        {
-          "name": "Get Service Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/services/analytics?period=month",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "services", "analytics"],
-              "query": [{ "key": "period", "value": "month" }]
-            }
-          }
-        },
-        {
-          "name": "Assign Driver to Service",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"serviceId\": \"serviceId\", \"driverId\": \"driverId\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/services/assign-driver",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "services", "assign-driver"]
-            }
-          }
-        },
-        {
-          "name": "Get Store Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/stores/:storeId/analytics?period=month",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "stores", ":storeId", "analytics"],
-              "query": [{ "key": "period", "value": "month" }],
-              "variable": [{ "key": "storeId", "value": "storeId" }]
-            }
-          }
-        },
-        {
-          "name": "Get Payment Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/payments/analytics",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "payments", "analytics"]
-            }
-          }
-        },
-        {
-          "name": "Get Recommendation Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/recommendations/analytics",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "recommendations", "analytics"]
-            }
-          }
-        },
-        {
-          "name": "Get Emergency Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/emergency/analytics",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "emergency", "analytics"]
-            }
-          }
-        },
-        {
-          "name": "Get Report Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/reports/analytics",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "reports", "analytics"]
-            }
-          }
-        },
-        {
-          "name": "Get System Config",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/config",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "config"]
-            }
-          }
-        },
-        {
-          "name": "Update System Config",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"key\": \"value\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/dashboard/admin/config/:key",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "dashboard", "admin", "config", ":key"],
-              "variable": [{ "key": "key", "value": "configKey" }]
+              "raw": "{{base_url}}/users/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["users", "change-password"]
             }
           }
-        }
-      ]
-    },
-    {
-      "name": "Day Booking",
-      "item": [
+        },
         {
-          "name": "Check Driver Availability",
+          "name": "Get All Users (Admin)",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/day-booking/availability",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "day-booking", "availability"]
-            }
-          }
-        },
-        {
-          "name": "Get Day Booking Pricing",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/day-booking/pricing",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "day-booking", "pricing"]
-            }
-          }
-        },
-        {
-          "name": "Book Driver for Day",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"driverId\": \"driverId\", \"date\": \"2025-06-07\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
               }
-            },
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/day-booking/book",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "day-booking", "book"]
-            }
-          }
-        },
-        {
-          "name": "Get Booking History",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/day-booking/history",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "day-booking", "history"]
-            }
-          }
-        },
-        {
-          "name": "Set Driver Price",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"price\": 100}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "raw": "{{base_url}}/users?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/day-booking/set-price",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "day-booking", "set-price"]
-            }
-          }
-        },
-        {
-          "name": "Set Driver Schedule",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"schedule\": {\"date\": \"2025-06-07\", \"available\": true}}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/day-booking/schedule",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "day-booking", "schedule"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Delivery",
-      "item": [
-        {
-          "name": "Estimate Delivery",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"pickupLocation\": \"address\", \"dropoffLocation\": \"address\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/delivery/estimate",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "delivery", "estimate"]
-            }
-          }
-        },
-        {
-          "name": "Create Delivery Order",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"pickupLocation\": \"address\", \"dropoffLocation\": \"address\", \"details\": \"delivery details\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/delivery/order",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "delivery", "order"]
-            }
-          }
-        },
-        {
-          "name": "Get Delivery Details",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/delivery/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "delivery", ":id"],
-              "variable": [{ "key": "id", "value": "deliveryId" }]
-            }
-          }
-        },
-        {
-          "name": "Get Delivery History",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/delivery/history",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "delivery", "history"]
-            }
-          }
-        },
-        {
-          "name": "Update Delivery Status",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"status\": \"IN_PROGRESS\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/delivery/:id/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "delivery", ":id", "status"],
-              "variable": [{ "key": "id", "value": "deliveryId" }]
+              ]
             }
           }
         }
@@ -727,331 +308,269 @@
       "name": "Drivers",
       "item": [
         {
-          "name": "Create Driver Profile",
+          "name": "Get Driver Profile",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"driversLicense\": \"ABC123\", \"nationalId\": \"123456789\", \"registrationPic\": \"url_to_pic\", \"driverPic\": \"url_to_pic\", \"licenseExpiryDate\": \"2025-12-31T00:00:00.000Z\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
               }
-            },
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/drivers/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "drivers", ""]
+              "raw": "{{base_url}}/drivers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["drivers", "profile"]
             }
           }
         },
         {
           "name": "Update Driver Profile",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"driversLicense\": \"ABC123\", \"nationalId\": \"123456789\", \"registrationPic\": \"url_to_pic\", \"driverPic\": \"url_to_pic\", \"licenseExpiryDate\": \"2025-12-31T00:00:00.000Z\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"licenseNumber\": \"DL987654321\",\n  \"vehicleModel\": \"Honda Civic\",\n  \"vehiclePlateNumber\": \"XYZ789\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/drivers/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "drivers", ""]
+              "raw": "{{base_url}}/drivers/profile",
+              "host": ["{{base_url}}"],
+              "path": ["drivers", "profile"]
             }
           }
         },
         {
-          "name": "Get Driver Profile",
+          "name": "Update Driver Location",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060\n}"
             },
+            "url": {
+              "raw": "{{base_url}}/drivers/location",
+              "host": ["{{base_url}}"],
+              "path": ["drivers", "location"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Driver Availability",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/drivers/availability",
+              "host": ["{{base_url}}"],
+              "path": ["drivers", "availability"]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Bookings",
+          "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/drivers/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "drivers", ""]
+              "raw": "{{base_url}}/drivers/bookings?status=ACTIVE",
+              "host": ["{{base_url}}"],
+              "path": ["drivers", "bookings"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
             }
           }
         },
         {
-          "name": "Update Driver Status",
+          "name": "Get Driver Earnings",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"status\": \"ONLINE\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
               }
-            },
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/drivers/license",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "drivers", "license"]
+              "raw": "{{base_url}}/drivers/earnings?period=month",
+              "host": ["{{base_url}}"],
+              "path": ["drivers", "earnings"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
             }
           }
         }
       ]
     },
     {
-      "name": "Emergency",
+      "name": "Services",
       "item": [
         {
-          "name": "Request Emergency Service",
+          "name": "Request Ride",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('service_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"details\": \"emergency details\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"serviceTypeId\": \"service-type-id\",\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"dropoffLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"scheduledTime\": \"2024-01-15T10:00:00Z\",\n  \"notes\": \"Please call when you arrive\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/emergency/request",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "emergency", "request"]
+              "raw": "{{base_url}}/services/request",
+              "host": ["{{base_url}}"],
+              "path": ["services", "request"]
             }
           }
         },
         {
-          "name": "Get Emergency Service Details",
+          "name": "Accept Ride (Driver)",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/emergency/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "emergency", ":id"],
-              "variable": [{ "key": "id", "value": "emergencyId" }]
-            }
-          }
-        },
-        {
-          "name": "Get Emergency History",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/emergency/history",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "emergency", "history"]
-            }
-          }
-        },
-        {
-          "name": "Cancel Emergency Request",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"serviceId\": \"{{service_id}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/emergency/:id/cancel",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "emergency", ":id", "cancel"],
-              "variable": [{ "key": "id", "value": "emergencyId" }]
+              "raw": "{{base_url}}/services/accept",
+              "host": ["{{base_url}}"],
+              "path": ["services", "accept"]
             }
           }
         },
         {
-          "name": "Update Emergency Status",
+          "name": "Update Service Status (Driver)",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "PUT",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\": \"IN_PROGRESS\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"serviceId\": \"{{service_id}}\",\n  \"status\": \"IN_PROGRESS\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/emergency/:id/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "emergency", ":id", "status"],
-              "variable": [{ "key": "id", "value": "emergencyId" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "House Moving",
-      "item": [
-        {
-          "name": "Create Moving Company",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Moving Co\", \"details\": \"details\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/house-moving/companies",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "house-moving", "companies"]
+              "raw": "{{base_url}}/services/status",
+              "host": ["{{base_url}}"],
+              "path": ["services", "status"]
             }
           }
         },
         {
-          "name": "Get Moving Companies",
+          "name": "Get Service Details",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/house-moving/companies",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "house-moving", "companies"]
-            }
-          }
-        },
-        {
-          "name": "Get Moving Company",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/house-moving/companies/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "house-moving", "companies", ":id"],
-              "variable": [{ "key": "id", "value": "companyId" }]
-            }
-          }
-        },
-        {
-          "name": "Update Moving Company",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Updated Moving Co\", \"details\": \"updated details\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
               }
-            },
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/house-moving/companies/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "house-moving", "companies", ":id"],
-              "variable": [{ "key": "id", "value": "companyId" }]
+              "raw": "{{base_url}}/services/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["services", "{{service_id}}"]
             }
           }
         },
         {
-          "name": "Delete Moving Company",
+          "name": "Get Service History",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/house-moving/companies/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "house-moving", "companies", ":id"],
-              "variable": [{ "key": "id", "value": "companyId" }]
-            }
-          }
-        },
-        {
-          "name": "Get Moving Company Analytics",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/house-moving/companies/:id/analytics",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "house-moving", "companies", ":id", "analytics"],
-              "variable": [{ "key": "id", "value": "companyId" }]
+              "raw": "{{base_url}}/services/history?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["services", "history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
             }
           }
         }
@@ -1063,291 +582,135 @@
         {
           "name": "Create Location",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"address\": \"123 Main St\", \"city\": \"City\", \"country\": \"Country\", \"latitude\": 40.7128, \"longitude\": -74.0060}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"name\": \"Central Park\",\n  \"address\": \"Central Park, New York, NY\",\n  \"latitude\": 40.7829,\n  \"longitude\": -73.9654,\n  \"type\": \"LANDMARK\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/locations/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "locations", ""]
+              "raw": "{{base_url}}/locations",
+              "host": ["{{base_url}}"],
+              "path": ["locations"]
             }
           }
         },
         {
           "name": "Geocode Location",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"address\": \"123 Main St\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"address\": \"Times Square, New York, NY\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/locations/geocode",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "locations", "geocode"]
+              "raw": "{{base_url}}/locations/geocode",
+              "host": ["{{base_url}}"],
+              "path": ["locations", "geocode"]
             }
           }
         },
         {
-          "name": "Reverse Geocode Location",
+          "name": "Reverse Geocode",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"longitude\": -74.0060, \"latitude\": 40.7128}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"latitude\": 40.7589,\n  \"longitude\": -73.9851\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/locations/reverse-geocode",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "locations", "reverse-geocode"]
+              "raw": "{{base_url}}/locations/reverse-geocode",
+              "host": ["{{base_url}}"],
+              "path": ["locations", "reverse-geocode"]
             }
           }
         },
         {
           "name": "Get Route Details",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"startLng\": -74.0060, \"startLat\": 40.7128, \"endLng\": -73.9352, \"endLat\": 40.7306, \"profile\": \"driving\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"origin\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060\n  },\n  \"destination\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851\n  },\n  \"profile\": \"driving\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/locations/route",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "locations", "route"]
+              "raw": "{{base_url}}/locations/route",
+              "host": ["{{base_url}}"],
+              "path": ["locations", "route"]
             }
           }
         },
         {
           "name": "Find Nearby Locations",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/locations/nearby",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "locations", "nearby"]
-            }
-          }
-        },
-        {
-          "name": "Check Location in Zone",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/locations/:locationId/in-zone/:zoneId",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "locations", ":locationId", "in-zone", ":zoneId"],
-              "variable": [
-                { "key": "locationId", "value": "locationId" },
-                { "key": "zoneId", "value": "zoneId" }
+              "raw": "{{base_url}}/locations/nearby?latitude=40.7128&longitude=-74.0060&radius=1000&type=RESTAURANT",
+              "host": ["{{base_url}}"],
+              "path": ["locations", "nearby"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "40.7128"
+                },
+                {
+                  "key": "longitude",
+                  "value": "-74.0060"
+                },
+                {
+                  "key": "radius",
+                  "value": "1000"
+                },
+                {
+                  "key": "type",
+                  "value": "RESTAURANT"
+                }
               ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Notifications",
-      "item": [
-        {
-          "name": "Create Notification",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"userId\": \"userId\", \"title\": \"Notification Title\", \"body\": \"Notification Body\", \"type\": \"SYSTEM\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications"]
-            }
-          }
-        },
-        {
-          "name": "Get Notifications",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications"]
-            }
-          }
-        },
-        {
-          "name": "Mark Notification as Read",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications/:id/read",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications", ":id", "read"],
-              "variable": [{ "key": "id", "value": "notificationId" }]
-            }
-          }
-        },
-        {
-          "name": "Mark All Notifications as Read",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications/mark-all-read",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications", "mark-all-read"]
-            }
-          }
-        },
-        {
-          "name": "Delete Notification",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications", ":id"],
-              "variable": [{ "key": "id", "value": "notificationId" }]
-            }
-          }
-        },
-        {
-          "name": "Create Broadcast Notification",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"title\": \"Broadcast Title\", \"body\": \"Broadcast Body\", \"type\": \"SYSTEM\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications/broadcast",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications", "broadcast"]
-            }
-          }
-        },
-        {
-          "name": "Get Notification Stats",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/notifications/admin/notifications/stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "notifications", "admin", "notifications", "stats"]
             }
           }
         }
@@ -1359,657 +722,50 @@
         {
           "name": "Initialize Payment",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"amount\": 100, \"serviceId\": \"serviceId\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"amount\": 2500,\n  \"email\": \"user@example.com\",\n  \"serviceId\": \"{{service_id}}\",\n  \"currency\": \"NGN\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/payments/initialize",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "payments", "initialize"]
+              "raw": "{{base_url}}/payments/initialize",
+              "host": ["{{base_url}}"],
+              "path": ["payments", "initialize"]
             }
           }
         },
         {
-          "name": "Verify Payment",
+          "name": "Payment Webhook",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-paystack-signature",
+                "value": "webhook-signature"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"paymentId\": \"paymentId\", \"status\": \"PAID\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"event\": \"charge.success\",\n  \"data\": {\n    \"reference\": \"payment-reference\",\n    \"amount\": 2500,\n    \"status\": \"success\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/payments/webhook",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "payments", "webhook"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Recommendations",
-      "item": [
-        {
-          "name": "Create Place Category",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Category Name\", \"isActive\": true}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "categories"]
-            }
-          }
-        },
-        {
-          "name": "Get Place Categories",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "categories"]
-            }
-          }
-        },
-        {
-          "name": "Get Place Category",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "categories", ":id"],
-              "variable": [{ "key": "id", "value": "categoryId" }]
-            }
-          }
-        },
-        {
-          "name": "Update Place Category",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Updated Category Name\", \"isActive\": true}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "categories", ":id"],
-              "variable": [{ "key": "id", "value": "categoryId" }]
-            }
-          }
-        },
-        {
-          "name": "Delete Place Category",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "categories", ":id"],
-              "variable": [{ "key": "id", "value": "categoryId" }]
-            }
-          }
-        },
-        {
-          "name": "Create Place",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Place Name\", \"categoryId\": \"categoryId\", \"isActive\": true}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/places",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "places"]
-            }
-          }
-        },
-        {
-          "name": "Get Places",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/places",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "places"]
-            }
-          }
-        },
-        {
-          "name": "Get Place",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/places/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "places", ":id"],
-              "variable": [{ "key": "id", "value": "placeId" }]
-            }
-          }
-        },
-        {
-          "name": "Update Place",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Updated Place Name\", \"categoryId\": \"categoryId\", \"isActive\": true}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/places/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "places", ":id"],
-              "variable": [{ "key": "id", "value": "placeId" }]
-            }
-          }
-        },
-        {
-          "name": "Delete Place",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/places/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "places", ":id"],
-              "variable": [{ "key": "id", "value": "placeId" }]
-            }
-          }
-        },
-        {
-          "name": "Create Recommendation Model",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Model Name\", \"details\": \"model details\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/models",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "models"]
-            }
-          }
-        },
-        {
-          "name": "Get Recommendation Models",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/models",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "models"]
-            }
-          }
-        },
-        {
-          "name": "Get Recommendation Model",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/models/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "models", ":id"],
-              "variable": [{ "key": "id", "value": "modelId" }]
-            }
-          }
-        },
-        {
-          "name": "Update Recommendation Model",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Updated Model Name\", \"details\": \"updated model details\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/models/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "models", ":id"],
-              "variable": [{ "key": "id", "value": "modelId" }]
-            }
-          }
-        },
-        {
-          "name": "Delete Recommendation Model",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/recommendations/models/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "recommendations", "models", ":id"],
-              "variable": [{ "key": "id", "value": "modelId" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Regions",
-      "item": [
-        {
-          "name": "Create Region",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Region Name\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", ""]
-            }
-          }
-        },
-        {
-          "name": "Get Regions",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", ""]
-            }
-          }
-        },
-        {
-          "name": "Get Region Hierarchy",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/hierarchy",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", "hierarchy"]
-            }
-          }
-        },
-        {
-          "name": "Get Region",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", ":id"],
-              "variable": [{ "key": "id", "value": "regionId" }]
-            }
-          }
-        },
-        {
-          "name": "Update Region",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Updated Region Name\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", ":id"],
-              "variable": [{ "key": "id", "value": "regionId" }]
-            }
-          }
-        },
-        {
-          "name": "Delete Region",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", ":id"],
-              "variable": [{ "key": "id", "value": "regionId" }]
-            }
-          }
-        },
-        {
-          "name": "Create District",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"District Name\", \"regionId\": \"regionId\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/districts",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", "districts"]
-            }
-          }
-        },
-        {
-          "name": "Get Districts",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/districts",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", "districts"]
-            }
-          }
-        },
-        {
-          "name": "Get District",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/districts/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", "districts", ":id"],
-              "variable": [{ "key": "id", "value": "districtId" }]
-            }
-          }
-        },
-        {
-          "name": "Update District",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\": \"Updated District Name\", \"regionId\": \"regionId\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/districts/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", "districts", ":id"],
-              "variable": [{ "key": "id", "value": "districtId" }]
-            }
-          }
-        },
-        {
-          "name": "Delete District",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/regions/districts/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "regions", "districts", ":id"],
-              "variable": [{ "key": "id", "value": "districtId" }]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Reports",
-      "item": [
-        {
-          "name": "Get Reports",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/admin/reports",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "admin", "reports"]
-            }
-          }
-        },
-        {
-          "name": "Get Report Types",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/admin/reports/types",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "admin", "reports", "types"]
-            }
-          }
-        },
-        {
-          "name": "Get Report",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/admin/reports/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "admin", "reports", ":id"],
-              "variable": [{ "key": "id", "value": "reportId" }]
-            }
-          }
-        },
-        {
-          "name": "Update Report Status",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"status\": \"RESOLVED\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/reports/admin/reports/:id/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reports", "admin", "reports", ":id", "status"],
-              "variable": [{ "key": "id", "value": "reportId" }]
+              "raw": "{{base_url}}/payments/webhook",
+              "host": ["{{base_url}}"],
+              "path": ["payments", "webhook"]
             }
           }
         }
@@ -2019,54 +775,52 @@
       "name": "Reviews",
       "item": [
         {
-          "name": "Create User Review",
+          "name": "Create Service Review",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"rating\": 5, \"comment\": \"Great service\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Driver was very professional.\",\n  \"driverId\": \"{{driver_id}}\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/service/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reviews", "service", ":id"],
-              "variable": [{ "key": "id", "value": "serviceId" }]
+              "raw": "{{base_url}}/reviews/service/{{service_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "service", "{{service_id}}"]
             }
           }
         },
         {
-          "name": "Create Driver Review",
+          "name": "Create Driver Review (Driver Only)",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"rating\": 4, \"comment\": \"Good customer\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Good passenger, respectful and on time.\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/user/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reviews", "user", ":id"],
-              "variable": [{ "key": "id", "value": "userId" }]
+              "raw": "{{base_url}}/reviews/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "user", "{{user_id}}"]
             }
           }
         },
@@ -2074,12 +828,10 @@
           "name": "Get Driver Reviews",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/driver/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reviews", "driver", ":id"],
-              "variable": [{ "key": "id", "value": "driverId" }]
+              "raw": "{{base_url}}/reviews/driver/{{driver_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "driver", "{{driver_id}}"]
             }
           }
         },
@@ -2087,12 +839,263 @@
           "name": "Get User Reviews",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/reviews/user/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "reviews", "user", ":id"],
-              "variable": [{ "key": "id", "value": "userId" }]
+              "raw": "{{base_url}}/reviews/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "user", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Day Booking",
+      "item": [
+        {
+          "name": "Check Driver Availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/day-booking/availability?date=2024-01-15&serviceType=CAR",
+              "host": ["{{base_url}}"],
+              "path": ["day-booking", "availability"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2024-01-15"
+                },
+                {
+                  "key": "serviceType",
+                  "value": "CAR"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Day Booking Pricing",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/day-booking/pricing?serviceType=CAR&duration=8",
+              "host": ["{{base_url}}"],
+              "path": ["day-booking", "pricing"],
+              "query": [
+                {
+                  "key": "serviceType",
+                  "value": "CAR"
+                },
+                {
+                  "key": "duration",
+                  "value": "8"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Book Driver for Day",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driver_id}}\",\n  \"date\": \"2024-01-15\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\",\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"notes\": \"Corporate event transportation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/day-booking/book",
+              "host": ["{{base_url}}"],
+              "path": ["day-booking", "book"]
+            }
+          }
+        },
+        {
+          "name": "Set Driver Price (Driver Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"CAR\",\n  \"pricePerHour\": 2000,\n  \"minimumHours\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/day-booking/set-price",
+              "host": ["{{base_url}}"],
+              "path": ["day-booking", "set-price"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivery",
+      "item": [
+        {
+          "name": "Estimate Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"deliveryLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"packageType\": \"DOCUMENT\",\n  \"weight\": 0.5,\n  \"urgency\": \"STANDARD\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/estimate",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "estimate"]
+            }
+          }
+        },
+        {
+          "name": "Create Delivery Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"deliveryLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"packageType\": \"DOCUMENT\",\n  \"weight\": 0.5,\n  \"urgency\": \"STANDARD\",\n  \"recipientName\": \"John Doe\",\n  \"recipientPhone\": \"+1234567890\",\n  \"instructions\": \"Leave at reception\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/order",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "order"]
+            }
+          }
+        },
+        {
+          "name": "Get Delivery Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/delivery/delivery-id",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "delivery-id"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emergency",
+      "item": [
+        {
+          "name": "Request Emergency Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emergencyType\": \"MEDICAL\",\n  \"location\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"description\": \"Medical emergency - chest pain\",\n  \"contactNumber\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emergency/request",
+              "host": ["{{base_url}}"],
+              "path": ["emergency", "request"]
+            }
+          }
+        },
+        {
+          "name": "Get Emergency Service Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/emergency/emergency-id",
+              "host": ["{{base_url}}"],
+              "path": ["emergency", "emergency-id"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Emergency Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"False alarm\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emergency/emergency-id/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["emergency", "emergency-id", "cancel"]
             }
           }
         }
@@ -2104,852 +1107,269 @@
         {
           "name": "Estimate Shared Ride",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"pickupLocation\": \"address\", \"dropoffLocation\": \"address\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"dropoffLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"passengers\": 2,\n  \"scheduledTime\": \"2024-01-15T10:00:00Z\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/shared-rides/estimate",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "shared-rides", "estimate"]
+              "raw": "{{base_url}}/shared-rides/estimate",
+              "host": ["{{base_url}}"],
+              "path": ["shared-rides", "estimate"]
             }
           }
         },
         {
           "name": "Book Shared Ride",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\"pickupLocation\": \"address\", \"dropoffLocation\": \"address\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"dropoffLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"passengers\": 2,\n  \"scheduledTime\": \"2024-01-15T10:00:00Z\",\n  \"maxWaitTime\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/shared-rides/book",
+              "host": ["{{base_url}}"],
+              "path": ["shared-rides", "book"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
               }
-            },
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/shared-rides/book",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "shared-rides", "book"]
+              "raw": "{{base_url}}/notifications?page=1&limit=10&unread=true",
+              "host": ["{{base_url}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "unread",
+                  "value": "true"
+                }
+              ]
             }
           }
         },
         {
-          "name": "Get Shared Ride Details",
+          "name": "Mark Notification as Read",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/shared-rides/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "shared-rides", ":id"],
-              "variable": [{ "key": "id", "value": "sharedRideId" }]
+              "raw": "{{base_url}}/notifications/notification-id/read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "notification-id", "read"]
             }
           }
         },
         {
-          "name": "Check Group Status",
+          "name": "Mark All Notifications as Read",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/shared-rides/:id/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "shared-rides", ":id", "status"],
-              "variable": [{ "key": "id", "value": "sharedRideId" }]
-            }
-          }
-        },
-        {
-          "name": "Leave Shared Ride",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-            },
             "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
               }
-            },
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/shared-rides/:id/leave",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "shared-rides", ":id", "leave"],
-"variable": [{ "key": "id", "value": "sharedRideId" }]
-}
-}
-},
-{
-"name": "Get Shared Ride History",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/shared-rides/history",
-"host": ["{{baseUrl}}"],
-"path": ["api", "shared-rides", "history"]
-}
-}
-}
-]
-},
-{
-"name": "Stores",
-"item": [
-{
-"name": "Create Store",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Store Name", "address": "123 Store St", "phone": "1234567890", "email": "store@example.com", "ownerId": "ownerId"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/stores/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", ""]
-}
-}
-},
-{
-"name": "Get Stores",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/stores/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", ""]
-}
-}
-},
-{
-"name": "Get Store",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/stores/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", ":id"],
-"variable": [{ "key": "id", "value": "storeId" }]
-}
-}
-},
-{
-"name": "Update Store",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Updated Store Name", "address": "456 Store St", "phone": "0987654321", "email": "updatedstore@example.com"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/stores/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", ":id"],
-"variable": [{ "key": "id", "value": "storeId" }]
-}
-}
-},
-{
-"name": "Delete Store",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "DELETE",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/stores/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", ":id"],
-"variable": [{ "key": "id", "value": "storeId" }]
-}
-}
-},
-{
-"name": "Create Store Item",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Item Name", "price": 10.99, "description": "Item description", "storeId": "storeId"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/stores/items",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", "items"]
-}
-}
-},
-{
-"name": "Get Store Items",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/stores/:storeId/items",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", ":storeId", "items"],
-"variable": [{ "key": "storeId", "value": "storeId" }]
-}
-}
-},
-{
-"name": "Update Store Item",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Updated Item Name", "price": 12.99, "description": "Updated item description"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/stores/items/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", "items", ":id"],
-"variable": [{ "key": "id", "value": "itemId" }]
-}
-}
-},
-{
-"name": "Delete Store Item",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "DELETE",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/stores/items/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "stores", "items", ":id"],
-"variable": [{ "key": "id", "value": "itemId" }]
-}
-}
-}
-]
-},
-{
-"name": "Taxi Stands",
-"item": [
-{
-"name": "Create Taxi Stand",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Taxi Stand Name", "location": {"latitude": 40.7128, "longitude": -74.0060}, "capacity": 10},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxi-stands/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-stands", ""]
-}
-}
-},
-{
-"name": "Get Taxi Stands",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxi-stands/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-stands", ""]
-}
-}
-},
-{
-"name": "Get Taxi Stand",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxi-stands/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-stands", ":id"],
-"variable": [{ "key": "id", "value": "taxiStandId" }]
-}
-}
-},
-{
-"name": "Update Taxi Stand",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Updated Taxi Stand Name", "location": {"latitude": 40.7128, "longitude": -74.0060}, "capacity": 15},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxi-stands/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-stands", ":id"],
-"variable": [{ "key": "id", "value": "taxiStandId" }]
-}
-}
-},
-{
-"name": "Delete Taxi Stand",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "DELETE",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxi-stands/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-stands", ":id"],
-"variable": [{ "key": "id", "value": "taxiStandId" }]
-}
-}
-}
-]
-},
-{
-"name": "Taxi Zones",
-"item": [
-{
-"name": "Create Taxi Zone",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Taxi Zone Name", "boundaries": [[40.7128, -74.0060], [40.7306, -73.9352]]},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxi-zones/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-zones", ""]
-}
-}
-},
-{
-"name": "Get Taxi Zones",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxi-zones/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-zones", ""]
-}
-}
-},
-{
-"name": "Get Taxi Zone",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxi-zones/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-zones", ":id"],
-"variable": [{ "key": "id", "value": "taxiZoneId" }]
-}
-}
-},
-{
-"name": "Update Taxi Zone",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"name": "Updated Taxi Zone Name", "boundaries": [[40.7128, -74.0060], [40.7306, -73.9352]]},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxi-zones/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-zones", ":id"],
-"variable": [{ "key": "id", "value": "taxiZoneId" }]
-}
-}
-},
-{
-"name": "Delete Taxi Zone",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "DELETE",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxi-zones/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxi-zones", ":id"],
-"variable": [{ "key": "id", "value": "taxiZoneId" }]
-}
-}
-}
-]
-},
-{
-"name": "Taxis",
-"item": [
-{
-"name": "Estimate Taxi Ride",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"pickupLocation": "address", "dropoffLocation": "address"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxis/estimate",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxis", "estimate"]
-}
-}
-},
-{
-"name": "Book Taxi Ride",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"pickupLocation": "address", "dropoffLocation": "address"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxis/book",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxis", "book"]
-}
-}
-},
-{
-"name": "Get Taxi Ride Details",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxis/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxis", ":id"],
-"variable": [{ "key": "id", "value": "taxiRideId" }]
-}
-}
-},
-{
-"name": "Get Taxi Ride History",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/taxis/history",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxis", "history"]
-}
-}
-},
-{
-"name": "Cancel Taxi Ride",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": "{}",
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/taxis/:id/cancel",
-"host": ["{{baseUrl}}"],
-"path": ["api", "taxis", ":id", "cancel"],
-"variable": [{ "key": "id", "value": "taxiRideId" }]
-}
-}
-}
-]
-},
-{
-"name": "Users",
-"item": [
-{
-"name": "Get User Profile",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/users/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "users", ""]
-}
-}
-},
-{
-"name": "Update User Profile",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"firstName": "Updated Name", "phone": "0987654321", "email": "updated@example.com"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/users/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "users", ""]
-}
-}
-},
-{
-"name": "Get User Settings",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/users/settings",
-"host": ["{{baseUrl}}"],
-"path": ["api", "users", "settings"]
-}
-}
-},
-{
-"name": "Update User Settings",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"notifications": true, "language": "en"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/users/settings",
-"host": ["{{baseUrl}}"],
-"path": ["api", "users", "settings"]
-}
-}
-}
-]
-},
-{
-"name": "Vehicles",
-"item": [
-{
-"name": "Create Vehicle",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "POST",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"make": "Toyota", "model": "Camry", "year": 2020, "licensePlate": "ABC123", "color": "Black", "driverId": "driverId"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/vehicles/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "vehicles", ""]
-}
-}
-},
-{
-"name": "Get Vehicles",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/vehicles/",
-"host": ["{{baseUrl}}"],
-"path": ["api", "vehicles", ""]
-}
-}
-},
-{
-"name": "Get Vehicle",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "GET",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/vehicles/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "vehicles", ":id"],
-"variable": [{ "key": "id", "value": "vehicleId" }]
-}
-}
-},
-{
-"name": "Update Vehicle",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "PUT",
-"header": [],
-"body": {
-"mode": "raw",
-"raw": {"make": "Honda", "model": "Civic", "year": 2021, "licensePlate": "XYZ789", "color": "White"},
-"options": {
-"raw": {
-"language": "json"
-}
-}
-},
-"url": {
-"raw": "{{baseUrl}}/api/vehicles/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "vehicles", ":id"],
-"variable": [{ "key": "id", "value": "vehicleId" }]
-}
-}
-},
-{
-"name": "Delete Vehicle",
-"request": {
-"auth": {
-"type": "bearer",
-"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
-},
-"method": "DELETE",
-"header": [],
-"url": {
-"raw": "{{baseUrl}}/api/vehicles/:id",
-"host": ["{{baseUrl}}"],
-"path": ["api", "vehicles", ":id"],
-"variable": [{ "key": "id", "value": "vehicleId" }]
-}
-}
-}
-]
-}
-],
-"variable": [
-{
-"key": "baseUrl",
-"value": "https://tripsync-backend-3v2v.onrender.com",
-"description": "Base URL for the TripSync API"
-},
-{
-"key": "token",
-"value": "",
-"description": "Bearer token for authenticated requests"
-}
-]
+              "raw": "{{base_url}}/notifications/mark-all-read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "mark-all-read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Admin Dashboard Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard/admin/overview",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "admin", "overview"]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard/driver/analytics",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "driver", "analytics"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Drivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard/admin/drivers/pending",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "admin", "drivers", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Services",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/dashboard/admin/services/active",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "admin", "services", "active"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Get User Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["sessions"]
+            }
+          }
+        },
+        {
+          "name": "Revoke Session",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sessions/session-id",
+              "host": ["{{base_url}}"],
+              "path": ["sessions", "session-id"]
+            }
+          }
+        },
+        {
+          "name": "Revoke All Other Sessions",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["sessions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anonymous",
+      "item": [
+        {
+          "name": "Get Public Data",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/anonymous/public-data",
+              "host": ["{{base_url}}"],
+              "path": ["anonymous", "public-data"]
+            }
+          }
+        }
+      ]
+    }
+  ]
 }
