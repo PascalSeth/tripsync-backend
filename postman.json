@@ -1,53 +1,86 @@
 {
   "info": {
-    "name": "TripSync Backend API",
-    "description": "Complete API collection for TripSync transportation platform",
+    "name": "TripSync Backend - Complete API Collection",
+    "description": "Complete API documentation for TripSync Backend with all endpoints, business logic, and workflows verified against the actual codebase",
     "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://tripsync-backend-3v2v.onrender.com/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "driverId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "serviceId",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "auth": {
     "type": "bearer",
     "bearer": [
       {
         "key": "token",
-        "value": "{{jwt_token}}",
+        "value": "{{authToken}}",
         "type": "string"
       }
     ]
   },
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "https://tripsync-backend-3v2v.onrender.com/api",
-      "type": "string"
-    },
-    {
-      "key": "jwt_token",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "user_id",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "driver_id",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "service_id",
-      "value": "",
-      "type": "string"
-    }
-  ],
   "item": [
     {
-      "name": "Authentication",
+      "name": "🏥 Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API server is running and healthy"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔐 Authentication",
       "item": [
         {
           "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -58,17 +91,33 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+1234567890\",\n  \"dateOfBirth\": \"1990-01-01\",\n  \"gender\": \"MALE\"\n}"
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"role\": \"USER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/register",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "register"]
-            }
+            },
+            "description": "Register a new regular user. Creates user account and returns JWT token."
           }
         },
         {
           "name": "Register Driver",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "    pm.collectionVariables.set('driverId', response.user.driver.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -79,13 +128,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"driver@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"phoneNumber\": \"+1234567891\",\n  \"dateOfBirth\": \"1985-05-15\",\n  \"gender\": \"FEMALE\",\n  \"licenseNumber\": \"DL123456789\",\n  \"licenseExpiryDate\": \"2025-12-31\",\n  \"vehicleType\": \"CAR\",\n  \"vehicleModel\": \"Toyota Camry\",\n  \"vehiclePlateNumber\": \"ABC123\",\n  \"vehicleYear\": 2020\n}"
+              "raw": "{\n  \"email\": \"driver@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Driver\",\n  \"phone\": \"+1234567891\",\n  \"role\": \"DRIVER\",\n  \"driversLicense\": \"DL123456789\",\n  \"nationalId\": \"ID123456789\",\n  \"registrationPic\": \"https://example.com/reg.jpg\",\n  \"driverPic\": \"https://example.com/driver.jpg\",\n  \"licenseExpiryDate\": \"2025-12-31T00:00:00Z\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/driver/register",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/driver/register",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "driver", "register"]
-            }
+            },
+            "description": "Register a new driver with license and vehicle information. Creates user account, driver profile, and returns JWT token."
           }
         },
         {
@@ -100,13 +150,58 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"store@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Store\",\n  \"lastName\": \"Owner\",\n  \"phoneNumber\": \"+1234567892\",\n  \"dateOfBirth\": \"1980-03-20\",\n  \"gender\": \"MALE\",\n  \"storeName\": \"My Store\",\n  \"storeAddress\": \"123 Main St\",\n  \"businessLicense\": \"BL123456\"\n}"
+              "raw": "{\n  \"email\": \"store@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Store\",\n  \"lastName\": \"Owner\",\n  \"phone\": \"+1234567892\",\n  \"role\": \"STORE_OWNER\",\n  \"businessLicense\": \"BL123456789\",\n  \"taxId\": \"TAX123456789\",\n  \"businessType\": \"Restaurant\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/store-owner/register",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/store-owner/register",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "store-owner", "register"]
-            }
+            },
+            "description": "Register a new store owner with business information."
+          }
+        },
+        {
+          "name": "Register Place Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"place@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Place\",\n  \"lastName\": \"Owner\",\n  \"phone\": \"+1234567893\",\n  \"role\": \"PLACE_OWNER\",\n  \"businessLicense\": \"PL123456789\",\n  \"subscriptionTier\": \"BASIC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/place-owner/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "place-owner", "register"]
+            },
+            "description": "Register a new place owner with subscription tier."
+          }
+        },
+        {
+          "name": "Register Emergency Responder",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"emergency@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Emergency\",\n  \"lastName\": \"Responder\",\n  \"phone\": \"+1234567894\",\n  \"role\": \"EMERGENCY_RESPONDER\",\n  \"badgeNumber\": \"BADGE123\",\n  \"department\": \"Fire Department\",\n  \"specialization\": \"FIRE\",\n  \"certifications\": [\"CPR\", \"First Aid\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/emergency-responder/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "emergency-responder", "register"]
+            },
+            "description": "Register a new emergency responder with certifications."
           }
         },
         {
@@ -118,8 +213,11 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
-                  "    pm.collectionVariables.set('jwt_token', response.token);",
-                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "    if (response.user.driver) {",
+                  "        pm.collectionVariables.set('driverId', response.user.driver.id);",
+                  "    }",
                   "}"
                 ]
               }
@@ -138,10 +236,11 @@
               "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "login"]
-            }
+            },
+            "description": "Login with email and password. Returns JWT token and user information."
           }
         },
         {
@@ -151,41 +250,43 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/auth/logout",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "logout"]
-            }
+            },
+            "description": "Logout and invalidate the current session token."
           }
         },
         {
-          "name": "Setup 2FA",
+          "name": "Setup Two Factor Authentication",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/auth/2fa/setup",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/2fa/setup",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "2fa", "setup"]
-            }
+            },
+            "description": "Setup 2FA for the authenticated user. Returns QR code and secret."
           }
         },
         {
-          "name": "Verify 2FA",
+          "name": "Verify Two Factor Authentication",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -194,45 +295,65 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"123456\"\n}"
+              "raw": "{\n  \"token\": \"123456\",\n  \"secret\": \"JBSWY3DPEHPK3PXP\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/2fa/verify",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/2fa/verify",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "2fa", "verify"]
-            }
+            },
+            "description": "Verify 2FA token to enable two-factor authentication."
           }
         }
       ]
     },
     {
-      "name": "Users",
+      "name": "👥 RBAC (Role-Based Access Control)",
       "item": [
         {
-          "name": "Get User Profile",
+          "name": "Initialize Role Permissions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rbac/initialize",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "initialize"]
+            },
+            "description": "Initialize default role permissions for all user roles. Sets up the permission matrix."
+          }
+        },
+        {
+          "name": "Get Roles and Permissions",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/users/profile",
-              "host": ["{{base_url}}"],
-              "path": ["users", "profile"]
-            }
+              "raw": "{{baseUrl}}/rbac/roles-permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "roles-permissions"]
+            },
+            "description": "Get all roles and their associated permissions."
           }
         },
         {
-          "name": "Update User Profile",
+          "name": "Assign Role to User",
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -241,23 +362,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John Updated\",\n  \"lastName\": \"Doe Updated\",\n  \"phoneNumber\": \"+1234567890\"\n}"
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"role\": \"DRIVER\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/users/profile",
-              "host": ["{{base_url}}"],
-              "path": ["users", "profile"]
-            }
+              "raw": "{{baseUrl}}/rbac/assign-role",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "assign-role"]
+            },
+            "description": "Assign a specific role to a user."
           }
         },
         {
-          "name": "Change Password",
+          "name": "Update Role Permissions",
           "request": {
             "method": "PUT",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -266,29 +388,66 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+              "raw": "{\n  \"role\": \"DRIVER\",\n  \"permissions\": [\"CREATE_SERVICE\", \"UPDATE_SERVICE\", \"READ_USER\"]\n}"
             },
             "url": {
-              "raw": "{{base_url}}/users/change-password",
-              "host": ["{{base_url}}"],
-              "path": ["users", "change-password"]
-            }
+              "raw": "{{baseUrl}}/rbac/role-permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "role-permissions"]
+            },
+            "description": "Update permissions for a specific role."
           }
         },
         {
-          "name": "Get All Users (Admin)",
+          "name": "Get User Permissions",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/users?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["users"],
+              "raw": "{{baseUrl}}/rbac/user/{{userId}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "user", "{{userId}}", "permissions"]
+            },
+            "description": "Get all permissions for a specific user."
+          }
+        },
+        {
+          "name": "Check User Permission",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rbac/user/{{userId}}/permission/CREATE_SERVICE",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "user", "{{userId}}", "permission", "CREATE_SERVICE"]
+            },
+            "description": "Check if a user has a specific permission."
+          }
+        },
+        {
+          "name": "Get Users by Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rbac/role/DRIVER/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["rbac", "role", "DRIVER", "users"],
               "query": [
                 {
                   "key": "page",
@@ -296,32 +455,129 @@
                 },
                 {
                   "key": "limit",
-                  "value": "10"
+                  "value": "20"
                 }
               ]
-            }
+            },
+            "description": "Get all users with a specific role."
           }
         }
       ]
     },
     {
-      "name": "Drivers",
+      "name": "📊 Audit Logs",
       "item": [
         {
-          "name": "Get Driver Profile",
+          "name": "Get Audit Logs",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/drivers/profile",
-              "host": ["{{base_url}}"],
-              "path": ["drivers", "profile"]
-            }
+              "raw": "{{baseUrl}}/audit/?resource=user&action=CREATE&page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit", ""],
+              "query": [
+                {
+                  "key": "resource",
+                  "value": "user"
+                },
+                {
+                  "key": "action",
+                  "value": "CREATE"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get audit logs with filtering options."
+          }
+        },
+        {
+          "name": "Get Audit Log by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audit/audit-log-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit", "audit-log-id"]
+            },
+            "description": "Get a specific audit log entry by ID."
+          }
+        },
+        {
+          "name": "Get Audit Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audit/statistics?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit", "statistics"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            },
+            "description": "Get audit statistics including action counts, resource counts, and user activity."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚗 Driver Management",
+      "item": [
+        {
+          "name": "Create Driver Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driversLicense\": \"DL123456789\",\n  \"licenseExpiryDate\": \"2025-12-31T00:00:00Z\",\n  \"vehicleTypeId\": \"vehicle-type-id\",\n  \"dayBookingPrice\": 150.00,\n  \"isAvailableForDayBooking\": true,\n  \"isTaxiDriver\": false,\n  \"vehicle\": {\n    \"registrationNumber\": \"ABC123\",\n    \"make\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"year\": 2022,\n    \"color\": \"White\",\n    \"seats\": 4,\n    \"insuranceNumber\": \"INS123456\",\n    \"insuranceExpiryDate\": \"2025-06-30T00:00:00Z\",\n    \"inspectionDate\": \"2024-01-15T00:00:00Z\",\n    \"photos\": [\"https://example.com/car1.jpg\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", ""]
+            },
+            "description": "Create a driver profile with vehicle information. Requires file uploads for documents."
           }
         },
         {
@@ -331,7 +587,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -340,13 +596,58 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"licenseNumber\": \"DL987654321\",\n  \"vehicleModel\": \"Honda Civic\",\n  \"vehiclePlateNumber\": \"XYZ789\"\n}"
+              "raw": "{\n  \"dayBookingPrice\": 175.00,\n  \"isAvailableForDayBooking\": true,\n  \"currentStatus\": \"ONLINE\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/drivers/profile",
-              "host": ["{{base_url}}"],
-              "path": ["drivers", "profile"]
-            }
+              "raw": "{{baseUrl}}/drivers/",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", ""]
+            },
+            "description": "Update driver profile information."
+          }
+        },
+        {
+          "name": "Get Driver Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/drivers/",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", ""]
+            },
+            "description": "Get the authenticated driver's profile information."
+          }
+        },
+        {
+          "name": "Update Driver Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentStatus\": \"ONLINE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "status"]
+            },
+            "description": "Update driver availability status (ONLINE, OFFLINE, ON_TRIP, BREAK)."
           }
         },
         {
@@ -356,7 +657,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -365,13 +666,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060\n}"
+              "raw": "{\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"address\": \"New York, NY, USA\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"country\": \"USA\",\n  \"postalCode\": \"10001\",\n  \"gpsAccuracy\": 5.0\n}"
             },
             "url": {
-              "raw": "{{base_url}}/drivers/location",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/drivers/location",
+              "host": ["{{baseUrl}}"],
               "path": ["drivers", "location"]
-            }
+            },
+            "description": "Update driver's real-time location for tracking and matching."
           }
         },
         {
@@ -381,14 +683,23 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailableForDayBooking\": true,\n  \"dayBookingPrice\": 200.00\n}"
+            },
             "url": {
-              "raw": "{{base_url}}/drivers/availability",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/drivers/availability",
+              "host": ["{{baseUrl}}"],
               "path": ["drivers", "availability"]
-            }
+            },
+            "description": "Toggle driver availability for day bookings and set pricing."
           }
         },
         {
@@ -398,20 +709,29 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/drivers/bookings?status=ACTIVE",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/drivers/bookings?status=COMPLETED&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
               "path": ["drivers", "bookings"],
               "query": [
                 {
                   "key": "status",
-                  "value": "ACTIVE"
+                  "value": "COMPLETED"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
               ]
-            }
+            },
+            "description": "Get driver's booking history with filtering and pagination."
           }
         },
         {
@@ -421,29 +741,126 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/drivers/earnings?period=month",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/drivers/earnings?period=monthly&year=2024&month=12",
+              "host": ["{{baseUrl}}"],
               "path": ["drivers", "earnings"],
               "query": [
                 {
                   "key": "period",
-                  "value": "month"
+                  "value": "monthly"
+                },
+                {
+                  "key": "year",
+                  "value": "2024"
+                },
+                {
+                  "key": "month",
+                  "value": "12"
                 }
               ]
-            }
+            },
+            "description": "Get driver earnings breakdown by period with detailed analytics."
           }
         }
       ]
     },
     {
-      "name": "Services",
+      "name": "📅 Day Booking",
       "item": [
         {
-          "name": "Request Ride",
+          "name": "Check Driver Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/day-booking/availability?districtId=district-id&date=2024-12-25T00:00:00Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["day-booking", "availability"],
+              "query": [
+                {
+                  "key": "districtId",
+                  "value": "district-id"
+                },
+                {
+                  "key": "date",
+                  "value": "2024-12-25T00:00:00Z"
+                }
+              ]
+            },
+            "description": "Check available drivers for day booking in a specific district and date."
+          }
+        },
+        {
+          "name": "Get Day Booking Pricing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/day-booking/pricing",
+              "host": ["{{baseUrl}}"],
+              "path": ["day-booking", "pricing"]
+            },
+            "description": "Get pricing information for day bookings across all districts."
+          }
+        },
+        {
+          "name": "Set Driver Price (Driver Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"districtId\": \"district-id\",\n  \"price\": 250.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/day-booking/set-price",
+              "host": ["{{baseUrl}}"],
+              "path": ["day-booking", "set-price"]
+            },
+            "description": "Set driver's day booking price for a specific district."
+          }
+        },
+        {
+          "name": "Set Driver Schedule (Driver Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"availableDates\": [\n    {\n      \"date\": \"2024-12-25T00:00:00Z\",\n      \"isAvailable\": true\n    },\n    {\n      \"date\": \"2024-12-26T00:00:00Z\",\n      \"isAvailable\": false\n    }\n  ],\n  \"districtIds\": [\"district-id-1\", \"district-id-2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/day-booking/schedule",
+              "host": ["{{baseUrl}}"],
+              "path": ["day-booking", "schedule"]
+            },
+            "description": "Set driver's availability schedule for multiple districts and dates."
+          }
+        },
+        {
+          "name": "Book Driver for Day",
           "event": [
             {
               "listen": "test",
@@ -451,7 +868,7 @@
                 "exec": [
                   "if (pm.response.code === 201) {",
                   "    const response = pm.response.json();",
-                  "    pm.collectionVariables.set('service_id', response.id);",
+                  "    pm.collectionVariables.set('serviceId', response.id);",
                   "}"
                 ]
               }
@@ -462,7 +879,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -471,504 +888,50 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"serviceTypeId\": \"service-type-id\",\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"dropoffLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"scheduledTime\": \"2024-01-15T10:00:00Z\",\n  \"notes\": \"Please call when you arrive\"\n}"
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"districtId\": \"district-id\",\n  \"date\": \"2024-12-25T00:00:00Z\",\n  \"pickupAddress\": \"123 Main St, New York, NY\",\n  \"notes\": \"Please arrive at 9 AM sharp\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/services/request",
-              "host": ["{{base_url}}"],
-              "path": ["services", "request"]
-            }
-          }
-        },
-        {
-          "name": "Accept Ride (Driver)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"serviceId\": \"{{service_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/services/accept",
-              "host": ["{{base_url}}"],
-              "path": ["services", "accept"]
-            }
-          }
-        },
-        {
-          "name": "Update Service Status (Driver)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"serviceId\": \"{{service_id}}\",\n  \"status\": \"IN_PROGRESS\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/services/status",
-              "host": ["{{base_url}}"],
-              "path": ["services", "status"]
-            }
-          }
-        },
-        {
-          "name": "Get Service Details",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/services/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["services", "{{service_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Get Service History",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/services/history?page=1&limit=10",
-              "host": ["{{base_url}}"],
-              "path": ["services", "history"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Locations",
-      "item": [
-        {
-          "name": "Create Location",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Central Park\",\n  \"address\": \"Central Park, New York, NY\",\n  \"latitude\": 40.7829,\n  \"longitude\": -73.9654,\n  \"type\": \"LANDMARK\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/locations",
-              "host": ["{{base_url}}"],
-              "path": ["locations"]
-            }
-          }
-        },
-        {
-          "name": "Geocode Location",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"address\": \"Times Square, New York, NY\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/locations/geocode",
-              "host": ["{{base_url}}"],
-              "path": ["locations", "geocode"]
-            }
-          }
-        },
-        {
-          "name": "Reverse Geocode",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"latitude\": 40.7589,\n  \"longitude\": -73.9851\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/locations/reverse-geocode",
-              "host": ["{{base_url}}"],
-              "path": ["locations", "reverse-geocode"]
-            }
-          }
-        },
-        {
-          "name": "Get Route Details",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"origin\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060\n  },\n  \"destination\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851\n  },\n  \"profile\": \"driving\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/locations/route",
-              "host": ["{{base_url}}"],
-              "path": ["locations", "route"]
-            }
-          }
-        },
-        {
-          "name": "Find Nearby Locations",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/locations/nearby?latitude=40.7128&longitude=-74.0060&radius=1000&type=RESTAURANT",
-              "host": ["{{base_url}}"],
-              "path": ["locations", "nearby"],
-              "query": [
-                {
-                  "key": "latitude",
-                  "value": "40.7128"
-                },
-                {
-                  "key": "longitude",
-                  "value": "-74.0060"
-                },
-                {
-                  "key": "radius",
-                  "value": "1000"
-                },
-                {
-                  "key": "type",
-                  "value": "RESTAURANT"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Payments",
-      "item": [
-        {
-          "name": "Initialize Payment",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"amount\": 2500,\n  \"email\": \"user@example.com\",\n  \"serviceId\": \"{{service_id}}\",\n  \"currency\": \"NGN\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/payments/initialize",
-              "host": ["{{base_url}}"],
-              "path": ["payments", "initialize"]
-            }
-          }
-        },
-        {
-          "name": "Payment Webhook",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "x-paystack-signature",
-                "value": "webhook-signature"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"event\": \"charge.success\",\n  \"data\": {\n    \"reference\": \"payment-reference\",\n    \"amount\": 2500,\n    \"status\": \"success\"\n  }\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/payments/webhook",
-              "host": ["{{base_url}}"],
-              "path": ["payments", "webhook"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Reviews",
-      "item": [
-        {
-          "name": "Create Service Review",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service! Driver was very professional.\",\n  \"driverId\": \"{{driver_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/reviews/service/{{service_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["reviews", "service", "{{service_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Create Driver Review (Driver Only)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Good passenger, respectful and on time.\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/reviews/user/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["reviews", "user", "{{user_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Get Driver Reviews",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/reviews/driver/{{driver_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["reviews", "driver", "{{driver_id}}"]
-            }
-          }
-        },
-        {
-          "name": "Get User Reviews",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/reviews/user/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["reviews", "user", "{{user_id}}"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Day Booking",
-      "item": [
-        {
-          "name": "Check Driver Availability",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/day-booking/availability?date=2024-01-15&serviceType=CAR",
-              "host": ["{{base_url}}"],
-              "path": ["day-booking", "availability"],
-              "query": [
-                {
-                  "key": "date",
-                  "value": "2024-01-15"
-                },
-                {
-                  "key": "serviceType",
-                  "value": "CAR"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Day Booking Pricing",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/day-booking/pricing?serviceType=CAR&duration=8",
-              "host": ["{{base_url}}"],
-              "path": ["day-booking", "pricing"],
-              "query": [
-                {
-                  "key": "serviceType",
-                  "value": "CAR"
-                },
-                {
-                  "key": "duration",
-                  "value": "8"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Book Driver for Day",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"driverId\": \"{{driver_id}}\",\n  \"date\": \"2024-01-15\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\",\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"notes\": \"Corporate event transportation\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/day-booking/book",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/day-booking/book",
+              "host": ["{{baseUrl}}"],
               "path": ["day-booking", "book"]
-            }
+            },
+            "description": "Book a driver for a full day with pickup location and special instructions."
           }
         },
         {
-          "name": "Set Driver Price (Driver Only)",
+          "name": "Get Booking History",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+                "value": "Bearer {{authToken}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"serviceType\": \"CAR\",\n  \"pricePerHour\": 2000,\n  \"minimumHours\": 4\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/day-booking/set-price",
-              "host": ["{{base_url}}"],
-              "path": ["day-booking", "set-price"]
-            }
+              "raw": "{{baseUrl}}/day-booking/history?driver=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["day-booking", "history"],
+              "query": [
+                {
+                  "key": "driver",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Get day booking history for user or driver."
           }
         }
       ]
     },
     {
-      "name": "Delivery",
+      "name": "📦 Delivery Services",
       "item": [
         {
-          "name": "Estimate Delivery",
+          "name": "Estimate Delivery Cost",
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -976,23 +939,37 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"deliveryLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"packageType\": \"DOCUMENT\",\n  \"weight\": 0.5,\n  \"urgency\": \"STANDARD\"\n}"
+              "raw": "{\n  \"storeId\": \"store-id\",\n  \"deliveryAddress\": \"456 Oak St, New York, NY\",\n  \"items\": [\n    {\n      \"productId\": \"product-id-1\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"product-id-2\",\n      \"quantity\": 1\n    }\n  ]\n}"
             },
             "url": {
-              "raw": "{{base_url}}/delivery/estimate",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/delivery/estimate",
+              "host": ["{{baseUrl}}"],
               "path": ["delivery", "estimate"]
-            }
+            },
+            "description": "Estimate delivery cost, time, and distance for an order."
           }
         },
         {
           "name": "Create Delivery Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('serviceId', response.service.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -1001,13 +978,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"deliveryLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"packageType\": \"DOCUMENT\",\n  \"weight\": 0.5,\n  \"urgency\": \"STANDARD\",\n  \"recipientName\": \"John Doe\",\n  \"recipientPhone\": \"+1234567890\",\n  \"instructions\": \"Leave at reception\"\n}"
+              "raw": "{\n  \"storeId\": \"store-id\",\n  \"deliveryAddress\": \"456 Oak St, New York, NY\",\n  \"items\": [\n    {\n      \"productId\": \"product-id-1\",\n      \"quantity\": 2,\n      \"specialRequest\": \"Extra sauce\"\n    }\n  ],\n  \"scheduledTime\": \"2024-12-25T14:00:00Z\",\n  \"paymentMethod\": \"CREDIT_CARD\",\n  \"notes\": \"Ring doorbell twice\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/delivery/order",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/delivery/order",
+              "host": ["{{baseUrl}}"],
               "path": ["delivery", "order"]
-            }
+            },
+            "description": "Create a new delivery order with items and delivery details."
           }
         },
         {
@@ -1017,29 +995,25 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/delivery/delivery-id",
-              "host": ["{{base_url}}"],
-              "path": ["delivery", "delivery-id"]
-            }
+              "raw": "{{baseUrl}}/delivery/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["delivery", "{{serviceId}}"]
+            },
+            "description": "Get detailed information about a specific delivery."
           }
-        }
-      ]
-    },
-    {
-      "name": "Emergency",
-      "item": [
+        },
         {
-          "name": "Request Emergency Service",
+          "name": "Update Delivery Status (Driver Only)",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -1048,13 +1022,82 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"emergencyType\": \"MEDICAL\",\n  \"location\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"description\": \"Medical emergency - chest pain\",\n  \"contactNumber\": \"+1234567890\"\n}"
+              "raw": "{\n  \"status\": \"OUT_FOR_DELIVERY\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/emergency/request",
-              "host": ["{{base_url}}"],
-              "path": ["emergency", "request"]
+              "raw": "{{baseUrl}}/delivery/{{serviceId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["delivery", "{{serviceId}}", "status"]
+            },
+            "description": "Update delivery status (PREPARING, READY_FOR_PICKUP, DRIVER_ACCEPTED, etc.)."
+          }
+        },
+        {
+          "name": "Get Delivery History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/delivery/history?driver=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["delivery", "history"],
+              "query": [
+                {
+                  "key": "driver",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Get delivery history for user or driver."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚨 Emergency Services",
+      "item": [
+        {
+          "name": "Request Emergency Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('serviceId', response.service.id);",
+                  "}"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emergencyType\": \"AMBULANCE\",\n  \"description\": \"Medical emergency - chest pain\",\n  \"address\": \"789 Emergency St, New York, NY\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency", "request"]
+            },
+            "description": "Request emergency service (POLICE, AMBULANCE, FIRE) with priority level."
           }
         },
         {
@@ -1064,14 +1107,65 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/emergency/emergency-id",
-              "host": ["{{base_url}}"],
-              "path": ["emergency", "emergency-id"]
-            }
+              "raw": "{{baseUrl}}/emergency/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency", "{{serviceId}}"]
+            },
+            "description": "Get details of an emergency service request."
+          }
+        },
+        {
+          "name": "Update Emergency Status (Responder Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ARRIVED\",\n  \"notes\": \"On scene, assessing situation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency/{{serviceId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency", "{{serviceId}}", "status"]
+            },
+            "description": "Update emergency status (ACKNOWLEDGED, DISPATCHED, ARRIVED, RESOLVED)."
+          }
+        },
+        {
+          "name": "Get Emergency History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/emergency/history?driver=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency", "history"],
+              "query": [
+                {
+                  "key": "driver",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Get emergency service history."
           }
         },
         {
@@ -1081,62 +1175,88 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+                "value": "Bearer {{authToken}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reason\": \"False alarm\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/emergency/emergency-id/cancel",
-              "host": ["{{base_url}}"],
-              "path": ["emergency", "emergency-id", "cancel"]
-            }
+              "raw": "{{baseUrl}}/emergency/{{serviceId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency", "{{serviceId}}", "cancel"]
+            },
+            "description": "Cancel an emergency request if not yet in progress."
           }
         }
       ]
     },
     {
-      "name": "Shared Rides",
+      "name": "🏠 House Moving",
       "item": [
         {
-          "name": "Estimate Shared Ride",
+          "name": "Get Moving Companies",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"dropoffLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"passengers\": 2,\n  \"scheduledTime\": \"2024-01-15T10:00:00Z\"\n}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/shared-rides/estimate",
-              "host": ["{{base_url}}"],
-              "path": ["shared-rides", "estimate"]
-            }
+              "raw": "{{baseUrl}}/house-moving/companies?lat=40.7128&lng=-74.0060",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "companies"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "40.7128"
+                },
+                {
+                  "key": "lng",
+                  "value": "-74.0060"
+                }
+              ]
+            },
+            "description": "Get available moving companies, optionally sorted by distance."
           }
         },
         {
-          "name": "Book Shared Ride",
+          "name": "Estimate Moving Cost",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupAddress\": \"123 Old St, New York, NY\",\n  \"dropoffAddress\": \"456 New St, Brooklyn, NY\",\n  \"moveDate\": \"2024-12-30T09:00:00Z\",\n  \"inventoryItems\": [\n    {\n      \"name\": \"Sofa\",\n      \"category\": \"furniture\",\n      \"quantity\": 1,\n      \"specialHandling\": true\n    },\n    {\n      \"name\": \"Boxes\",\n      \"category\": \"box\",\n      \"quantity\": 20,\n      \"specialHandling\": false\n    }\n  ],\n  \"requiresHelpers\": true,\n  \"helpersCount\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/house-moving/estimate",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "estimate"]
+            },
+            "description": "Estimate moving cost based on distance, volume, and requirements."
+          }
+        },
+        {
+          "name": "Book Moving Service",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('serviceId', response.service.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               },
               {
                 "key": "Content-Type",
@@ -1145,20 +1265,836 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"pickupLocation\": {\n    \"latitude\": 40.7128,\n    \"longitude\": -74.0060,\n    \"address\": \"New York, NY\"\n  },\n  \"dropoffLocation\": {\n    \"latitude\": 40.7589,\n    \"longitude\": -73.9851,\n    \"address\": \"Times Square, NY\"\n  },\n  \"passengers\": 2,\n  \"scheduledTime\": \"2024-01-15T10:00:00Z\",\n  \"maxWaitTime\": 15\n}"
+              "raw": "{\n  \"pickupAddress\": \"123 Old St, New York, NY\",\n  \"dropoffAddress\": \"456 New St, Brooklyn, NY\",\n  \"moveDate\": \"2024-12-30T09:00:00Z\",\n  \"inventoryItems\": [\n    {\n      \"name\": \"Sofa\",\n      \"category\": \"furniture\",\n      \"quantity\": 1,\n      \"specialHandling\": true,\n      \"specialInstructions\": \"Wrap carefully\"\n    }\n  ],\n  \"vehicleSize\": \"large\",\n  \"requiresHelpers\": true,\n  \"helpersCount\": 2,\n  \"specialInstructions\": \"Fragile items\",\n  \"movingCompanyId\": \"company-id\",\n  \"paymentMethod\": \"CREDIT_CARD\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/shared-rides/book",
-              "host": ["{{base_url}}"],
-              "path": ["shared-rides", "book"]
-            }
+              "raw": "{{baseUrl}}/house-moving/book",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "book"]
+            },
+            "description": "Book a moving service with detailed inventory and requirements."
+          }
+        },
+        {
+          "name": "Get Moving Service Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/house-moving/{{serviceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "{{serviceId}}"]
+            },
+            "description": "Get detailed information about a moving service."
+          }
+        },
+        {
+          "name": "Update Inventory Items",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inventoryItems\": [\n    {\n      \"id\": \"item-id\",\n      \"name\": \"Updated Sofa\",\n      \"category\": \"furniture\",\n      \"quantity\": 1,\n      \"specialHandling\": true\n    },\n    {\n      \"name\": \"New Item\",\n      \"category\": \"box\",\n      \"quantity\": 5,\n      \"specialHandling\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/house-moving/{{serviceId}}/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "{{serviceId}}", "inventory"]
+            },
+            "description": "Update inventory items for a scheduled moving service."
+          }
+        },
+        {
+          "name": "Track Moving Service",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/house-moving/{{serviceId}}/track",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "{{serviceId}}", "track"]
+            },
+            "description": "Track moving service progress with real-time updates."
+          }
+        },
+        {
+          "name": "Update Moving Status (Driver Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"LOADING\",\n  \"notes\": \"Started loading items\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/house-moving/{{serviceId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "{{serviceId}}", "status"]
+            },
+            "description": "Update moving status (CONFIRMED, LOADING, IN_TRANSIT, UNLOADING, COMPLETED)."
+          }
+        },
+        {
+          "name": "Cancel Moving Service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/house-moving/{{serviceId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["house-moving", "{{serviceId}}", "cancel"]
+            },
+            "description": "Cancel a moving service with potential cancellation fees."
           }
         }
       ]
     },
     {
-      "name": "Notifications",
+      "name": "📍 Location Services",
       "item": [
+        {
+          "name": "Create Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"Times Square, New York, NY\",\n  \"name\": \"Times Square\",\n  \"type\": \"FAVORITE\",\n  \"country\": \"USA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", ""]
+            },
+            "description": "Create a location using Mapbox geocoding."
+          }
+        },
+        {
+          "name": "Geocode Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"Empire State Building, New York\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/geocode",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "geocode"]
+            },
+            "description": "Convert address to coordinates using Mapbox."
+          }
+        },
+        {
+          "name": "Reverse Geocode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"longitude\": -74.0060,\n  \"latitude\": 40.7128\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/reverse-geocode",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "reverse-geocode"]
+            },
+            "description": "Convert coordinates to address using Mapbox."
+          }
+        },
+        {
+          "name": "Calculate Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startLocationId\": \"start-location-id\",\n  \"endLocationId\": \"end-location-id\",\n  \"profile\": \"driving\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/route",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "route"]
+            },
+            "description": "Calculate route between two locations with distance and duration."
+          }
+        },
+        {
+          "name": "Find Nearby Locations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/nearby?longitude=-74.0060&latitude=40.7128&radius=1000&type=FAVORITE",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "nearby"],
+              "query": [
+                {
+                  "key": "longitude",
+                  "value": "-74.0060"
+                },
+                {
+                  "key": "latitude",
+                  "value": "40.7128"
+                },
+                {
+                  "key": "radius",
+                  "value": "1000"
+                },
+                {
+                  "key": "type",
+                  "value": "FAVORITE"
+                }
+              ]
+            },
+            "description": "Find locations within a specified radius of given coordinates."
+          }
+        },
+        {
+          "name": "Check Location in Zone",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/location-id/in-zone/zone-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "location-id", "in-zone", "zone-id"]
+            },
+            "description": "Check if a location is within a specific taxi zone."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌍 Regions & Districts",
+      "item": [
+        {
+          "name": "Create Region",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New York State\",\n  \"type\": \"STATE\",\n  \"parentId\": \"country-id\",\n  \"code\": \"NY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/regions",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "regions"]
+            },
+            "description": "Create a new geographic region (COUNTRY, STATE, CITY, DISTRICT)."
+          }
+        },
+        {
+          "name": "Get Regions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/regions?type=STATE&parentId=country-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "regions"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "STATE"
+                },
+                {
+                  "key": "parentId",
+                  "value": "country-id"
+                }
+              ]
+            },
+            "description": "Get regions with optional filtering by type and parent."
+          }
+        },
+        {
+          "name": "Get Region Hierarchy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/regions/hierarchy",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "regions", "hierarchy"]
+            },
+            "description": "Get complete region hierarchy tree structure."
+          }
+        },
+        {
+          "name": "Get Region Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/regions/region-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "regions", "region-id"]
+            },
+            "description": "Get detailed information about a specific region."
+          }
+        },
+        {
+          "name": "Update Region",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Region Name\",\n  \"code\": \"UPD\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/regions/region-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "regions", "region-id"]
+            },
+            "description": "Update region information."
+          }
+        },
+        {
+          "name": "Delete Region",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/locations/regions/region-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "regions", "region-id"]
+            },
+            "description": "Delete a region (only if no children or districts exist)."
+          }
+        },
+        {
+          "name": "Create District",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Manhattan\",\n  \"regionId\": \"region-id\",\n  \"boundaries\": \"{\\\"type\\\": \\\"Polygon\\\", \\\"coordinates\\\": []}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/districts",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "districts"]
+            },
+            "description": "Create a new district within a region."
+          }
+        },
+        {
+          "name": "Get Districts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/districts?regionId=region-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "districts"],
+              "query": [
+                {
+                  "key": "regionId",
+                  "value": "region-id"
+                }
+              ]
+            },
+            "description": "Get districts, optionally filtered by region."
+          }
+        },
+        {
+          "name": "Get District Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/districts/district-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "districts", "district-id"]
+            },
+            "description": "Get detailed information about a specific district."
+          }
+        },
+        {
+          "name": "Update District",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated District Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/districts/district-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "districts", "district-id"]
+            },
+            "description": "Update district information."
+          }
+        },
+        {
+          "name": "Delete District",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/locations/districts/district-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "districts", "district-id"]
+            },
+            "description": "Delete a district (only if no bookings or driver assignments exist)."
+          }
+        },
+        {
+          "name": "List Regions (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/regions/?type=CITY&parentId=state-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["regions", ""],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "CITY"
+                },
+                {
+                  "key": "parentId",
+                  "value": "state-id"
+                }
+              ]
+            },
+            "description": "Public endpoint to list regions."
+          }
+        },
+        {
+          "name": "Get Region Details (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/regions/region-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["regions", "region-id"]
+            },
+            "description": "Public endpoint to get region details."
+          }
+        },
+        {
+          "name": "Get Child Regions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/regions/region-id/children",
+              "host": ["{{baseUrl}}"],
+              "path": ["regions", "region-id", "children"]
+            },
+            "description": "Get child regions of a specific region."
+          }
+        },
+        {
+          "name": "Get Region Districts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/regions/region-id/districts",
+              "host": ["{{baseUrl}}"],
+              "path": ["regions", "region-id", "districts"]
+            },
+            "description": "Get all districts within a region."
+          }
+        },
+        {
+          "name": "Get District Details (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/districts/district-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["districts", "district-id"]
+            },
+            "description": "Public endpoint to get district details."
+          }
+        },
+        {
+          "name": "List District Drivers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/districts/district-id/drivers?date=2024-12-25",
+              "host": ["{{baseUrl}}"],
+              "path": ["districts", "district-id", "drivers"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2024-12-25"
+                }
+              ]
+            },
+            "description": "List available drivers in a district for a specific date."
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 Payments",
+      "item": [
+        {
+          "name": "Initialize Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"amount\": 50.00,\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/initialize",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "initialize"]
+            },
+            "description": "Initialize payment with Paystack for a service."
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reference\": \"paystack-reference-id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "verify"]
+            },
+            "description": "Verify payment status with Paystack."
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Reviews & Ratings",
+      "item": [
+        {
+          "name": "Create User Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent service, very professional driver!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reviews/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "user"]
+            },
+            "description": "Create a review for a completed service (user rating driver)."
+          }
+        },
+        {
+          "name": "Create Driver Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"rating\": 4,\n  \"comment\": \"Polite passenger, easy pickup location.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reviews/driver",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "driver"]
+            },
+            "description": "Create a review for a completed service (driver rating user)."
+          }
+        },
+        {
+          "name": "Get Driver Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/driver/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "driver", "{{driverId}}"]
+            },
+            "description": "Get all reviews for a specific driver."
+          }
+        },
+        {
+          "name": "Get User Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "user", "{{userId}}"]
+            },
+            "description": "Get all reviews for a specific user."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Reports & Moderation",
+      "item": [
+        {
+          "name": "Get Reports (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/?status=SUBMITTED&type=SAFETY_CONCERN",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", ""],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SUBMITTED"
+                },
+                {
+                  "key": "type",
+                  "value": "SAFETY_CONCERN"
+                }
+              ]
+            },
+            "description": "Get all reports with filtering options (admin only)."
+          }
+        },
+        {
+          "name": "Get Report Details (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/report-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "report-id"]
+            },
+            "description": "Get detailed information about a specific report."
+          }
+        },
+        {
+          "name": "Update Report Status (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\",\n  \"responseMessage\": \"Issue has been investigated and resolved. Driver has been warned.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reports/report-id/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "report-id", "status"]
+            },
+            "description": "Update report status and add response message."
+          }
+        },
+        {
+          "name": "Get Report Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/types",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "types"]
+            },
+            "description": "Get all available report types."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Create Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"title\": \"Service Update\",\n  \"body\": \"Your ride has been confirmed\",\n  \"type\": \"SERVICE_UPDATE\",\n  \"data\": \"{\\\"serviceId\\\": \\\"service-id\\\"}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ""]
+            },
+            "description": "Create a notification for a specific user."
+          }
+        },
         {
           "name": "Get Notifications",
           "request": {
@@ -1166,28 +2102,37 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/notifications?page=1&limit=10&unread=true",
-              "host": ["{{base_url}}"],
-              "path": ["notifications"],
+              "raw": "{{baseUrl}}/notifications/?userId={{userId}}&type=SERVICE_UPDATE&isRead=false&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", ""],
               "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "type",
+                  "value": "SERVICE_UPDATE"
+                },
+                {
+                  "key": "isRead",
+                  "value": "false"
+                },
                 {
                   "key": "page",
                   "value": "1"
                 },
                 {
                   "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "unread",
-                  "value": "true"
+                  "value": "20"
                 }
               ]
-            }
+            },
+            "description": "Get notifications with filtering and pagination."
           }
         },
         {
@@ -1197,14 +2142,15 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/notifications/notification-id/read",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/notifications/notification-id/read",
+              "host": ["{{baseUrl}}"],
               "path": ["notifications", "notification-id", "read"]
-            }
+            },
+            "description": "Mark a specific notification as read."
           }
         },
         {
@@ -1214,38 +2160,92 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/mark-all-read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "mark-all-read"]
+            },
+            "description": "Mark all notifications as read for a user."
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/notifications/mark-all-read",
-              "host": ["{{base_url}}"],
-              "path": ["notifications", "mark-all-read"]
-            }
+              "raw": "{{baseUrl}}/notifications/notification-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "notification-id"]
+            },
+            "description": "Delete a specific notification."
           }
-        }
-      ]
-    },
-    {
-      "name": "Dashboard",
-      "item": [
+        },
         {
-          "name": "Get Admin Dashboard Overview",
+          "name": "Broadcast Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"System Maintenance\",\n  \"body\": \"The system will be under maintenance from 2-4 AM\",\n  \"type\": \"SYSTEM\",\n  \"userFilter\": {\n    \"isDriver\": true,\n    \"isActive\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/broadcast",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "broadcast"]
+            },
+            "description": "Send broadcast notification to filtered users."
+          }
+        },
+        {
+          "name": "Get Notification Statistics (Admin)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/dashboard/admin/overview",
-              "host": ["{{base_url}}"],
-              "path": ["dashboard", "admin", "overview"]
-            }
+              "raw": "{{baseUrl}}/notifications/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "stats"]
+            },
+            "description": "Get notification statistics and analytics."
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard & Analytics",
+      "item": [
         {
           "name": "Get Driver Analytics",
           "request": {
@@ -1253,120 +2253,835 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/dashboard/driver/analytics",
-              "host": ["{{base_url}}"],
-              "path": ["dashboard", "driver", "analytics"]
-            }
+              "raw": "{{baseUrl}}/dashboard/driver/analytics?period=week",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "driver", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "week"
+                }
+              ]
+            },
+            "description": "Get driver analytics including trips, earnings, and ratings."
           }
         },
         {
-          "name": "Get Pending Drivers",
+          "name": "Get Admin Dashboard Overview",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/dashboard/admin/drivers/pending",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/dashboard/admin/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "overview"]
+            },
+            "description": "Get admin dashboard overview with key metrics."
+          }
+        },
+        {
+          "name": "Get Pending Drivers (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/drivers/pending",
+              "host": ["{{baseUrl}}"],
               "path": ["dashboard", "admin", "drivers", "pending"]
-            }
+            },
+            "description": "Get list of drivers pending approval."
           }
         },
         {
-          "name": "Get Active Services",
+          "name": "Approve/Reject Driver (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approve\": true,\n  \"reason\": \"All documents verified successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/drivers/{{driverId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "drivers", "{{driverId}}", "approve"]
+            },
+            "description": "Approve or reject a driver application."
+          }
+        },
+        {
+          "name": "Get Driver Performance (Admin)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/dashboard/admin/services/active",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/dashboard/admin/drivers/{{driverId}}/performance",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "drivers", "{{driverId}}", "performance"]
+            },
+            "description": "Get detailed performance metrics for a specific driver."
+          }
+        },
+        {
+          "name": "Get Active Services (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/services/active",
+              "host": ["{{baseUrl}}"],
               "path": ["dashboard", "admin", "services", "active"]
-            }
+            },
+            "description": "Get all currently active services."
           }
-        }
-      ]
-    },
-    {
-      "name": "Sessions",
-      "item": [
+        },
         {
-          "name": "Get User Sessions",
+          "name": "Get Service Analytics (Admin)",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/sessions",
-              "host": ["{{base_url}}"],
-              "path": ["sessions"]
-            }
+              "raw": "{{baseUrl}}/dashboard/admin/services/analytics?period=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "services", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
+            },
+            "description": "Get service analytics and statistics."
           }
         },
         {
-          "name": "Revoke Session",
+          "name": "Assign Driver to Service (Admin)",
           "request": {
-            "method": "DELETE",
+            "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"{{serviceId}}\",\n  \"driverId\": \"{{driverId}}\"\n}"
+            },
             "url": {
-              "raw": "{{base_url}}/sessions/session-id",
-              "host": ["{{base_url}}"],
-              "path": ["sessions", "session-id"]
-            }
+              "raw": "{{baseUrl}}/dashboard/admin/services/assign-driver",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "services", "assign-driver"]
+            },
+            "description": "Manually assign a driver to a service."
           }
         },
         {
-          "name": "Revoke All Other Sessions",
+          "name": "Get Store Analytics (Admin)",
           "request": {
-            "method": "DELETE",
+            "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{authToken}}"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/sessions",
-              "host": ["{{base_url}}"],
-              "path": ["sessions"]
-            }
+              "raw": "{{baseUrl}}/dashboard/admin/stores/store-id/analytics?period=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "stores", "store-id", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
+            },
+            "description": "Get analytics for a specific store."
+          }
+        },
+        {
+          "name": "Get Payment Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/payments/analytics?period=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "payments", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
+            },
+            "description": "Get payment analytics and financial metrics."
+          }
+        },
+        {
+          "name": "Get Recommendation Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/recommendations/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "recommendations", "analytics"]
+            },
+            "description": "Get place recommendation system analytics."
+          }
+        },
+        {
+          "name": "Get Emergency Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/emergency/analytics?period=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "emergency", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
+            },
+            "description": "Get emergency services analytics."
+          }
+        },
+        {
+          "name": "Get Report Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/reports/analytics",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "reports", "analytics"]
+            },
+            "description": "Get report and moderation analytics."
+          }
+        },
+        {
+          "name": "Get System Configuration (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/config",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "config"]
+            },
+            "description": "Get system configuration settings."
+          }
+        },
+        {
+          "name": "Update System Configuration (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": \"new-config-value\",\n  \"description\": \"Updated configuration setting\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin/config/config-key",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "admin", "config", "config-key"]
+            },
+            "description": "Update a system configuration setting."
           }
         }
       ]
     },
     {
-      "name": "Anonymous",
+      "name": "🎯 Recommendations & Places",
       "item": [
         {
-          "name": "Get Public Data",
+          "name": "Create Place Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Restaurants\",\n  \"description\": \"Dining and food establishments\",\n  \"icon\": \"restaurant\",\n  \"sortOrder\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/places/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "categories"]
+            },
+            "description": "Create a new place category."
+          }
+        },
+        {
+          "name": "Get Place Categories",
           "request": {
             "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/anonymous/public-data",
-              "host": ["{{base_url}}"],
-              "path": ["anonymous", "public-data"]
+              "raw": "{{baseUrl}}/places/categories?isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "categories"],
+              "query": [
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get all place categories."
+          }
+        },
+        {
+          "name": "Get Place Category Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/places/categories/category-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "categories", "category-id"]
+            },
+            "description": "Get detailed information about a place category."
+          }
+        },
+        {
+          "name": "Update Place Category (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Category Name\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/places/categories/category-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "categories", "category-id"]
+            },
+            "description": "Update a place category."
+          }
+        },
+        {
+          "name": "Delete Place Category (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/places/categories/category-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "categories", "category-id"]
+            },
+            "description": "Delete a place category (only if no places exist)."
+          }
+        },
+        {
+          "name": "Create Place (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Central Park\",\n  \"description\": \"Beautiful park in Manhattan\",\n  \"imageUrl\": \"https://example.com/central-park.jpg\",\n  \"locationId\": \"location-id\",\n  \"categoryId\": \"category-id\",\n  \"rating\": 4.5,\n  \"priceLevel\": \"BUDGET\",\n  \"contactInfo\": \"+1234567890\",\n  \"websiteUrl\": \"https://centralparknyc.org\",\n  \"openingHours\": \"{\\\"monday\\\": \\\"6:00-23:00\\\"}\",\n  \"tags\": \"park,nature,recreation\",\n  \"isActive\": true,\n  \"recommendationScore\": 4.5,\n  \"attributes\": [\n    {\n      \"key\": \"accessibility\",\n      \"value\": \"wheelchair_accessible\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/places/",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", ""]
+            },
+            "description": "Create a new place with attributes."
+          }
+        },
+        {
+          "name": "Get Places",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/places/?categoryId=category-id&isActive=true&search=park",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", ""],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "category-id"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                },
+                {
+                  "key": "search",
+                  "value": "park"
+                }
+              ]
+            },
+            "description": "Get places with filtering and search."
+          }
+        },
+        {
+          "name": "Get Place Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/places/place-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "place-id"]
+            },
+            "description": "Get detailed information about a place (increments view count)."
+          }
+        },
+        {
+          "name": "Update Place (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Place Name\",\n  \"description\": \"Updated description\",\n  \"rating\": 4.8\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/places/place-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "place-id"]
+            },
+            "description": "Update place information."
+          }
+        },
+        {
+          "name": "Delete Place (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/places/place-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["places", "place-id"]
+            },
+            "description": "Delete a place (only if no votes or services exist)."
+          }
+        },
+        {
+          "name": "Get Recommendation Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "categories"]
+            },
+            "description": "Get place categories for recommendations."
+          }
+        },
+        {
+          "name": "Get Places by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/places?categoryId=category-id&limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "places"],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "category-id"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get places by category with pagination."
+          }
+        },
+        {
+          "name": "Get Place Details (Recommendations)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/places/place-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "places", "place-id"]
+            },
+            "description": "Get place details for recommendations."
+          }
+        },
+        {
+          "name": "Get Recommended Places (Authenticated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/recommended?limit=5&categoryId=category-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "recommended"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "category-id"
+                }
+              ]
+            },
+            "description": "Get personalized place recommendations for authenticated user."
+          }
+        },
+        {
+          "name": "Start Place Survey (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"category-id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/survey",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "survey"]
+            },
+            "description": "Start a place preference survey."
+          }
+        },
+        {
+          "name": "Submit Place Vote (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placeId\": \"place-id\",\n  \"isLiked\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/survey/survey-id/vote",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "survey", "survey-id", "vote"]
+            },
+            "description": "Submit a vote for a place in a survey."
+          }
+        },
+        {
+          "name": "Complete Survey (Authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommendations/survey/survey-id/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommendations", "survey", "survey-id", "complete"]
+            },
+            "description": "Complete a place preference survey and get recommendations."
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Anonymous Users",
+      "item": [
+        {
+          "name": "Create Anonymous User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('anonymousUserId', response.id);",
+                  "}"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Guest User\",\n  \"gender\": \"PREFER_NOT_TO_SAY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/anonymous/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["anonymous", "create"]
+            },
+            "description": "Create an anonymous user for surveys without registration."
+          }
+        },
+        {
+          "name": "Get Anonymous User Preferences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anonymous/{{anonymousUserId}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["anonymous", "{{anonymousUserId}}", "preferences"]
+            },
+            "description": "Get preference insights for an anonymous user."
+          }
+        },
+        {
+          "name": "Start Anonymous Survey",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('surveyId', response.survey.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"category-id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/anonymous/{{anonymousUserId}}/survey",
+              "host": ["{{baseUrl}}"],
+              "path": ["anonymous", "{{anonymousUserId}}", "survey"]
+            },
+            "description": "Start a place preference survey for anonymous user."
+          }
+        },
+        {
+          "name": "Submit Anonymous Vote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"placeId\": \"place-id\",\n  \"isLiked\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/anonymous/{{anonymousUserId}}/survey/{{surveyId}}/vote",
+              "host": ["{{baseUrl}}"],
+              "path": ["anonymous", "{{anonymousUserId}}", "survey", "{{surveyId}}", "vote"]
+            },
+            "description": "Submit a vote for a place in anonymous survey."
+          }
+        },
+        {
+          "name": "Complete Anonymous Survey",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anonymous/{{anonymousUserId}}/survey/{{surveyId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["anonymous", "{{anonymousUserId}}", "survey", "{{surveyId}}", "complete"]
+            },
+            "description": "Complete anonymous survey and get recommendations."
+          }
+        },
+        {
+          "name": "Get Anonymous Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anonymous/{{anonymousUserId}}/recommendations?limit=5&categoryId=category-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["anonymous", "{{anonymousUserId}}", "recommendations"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "category-id"
+                }
+              ]
+            },
+            "description": "Get personalized recommendations for anonymous user."
           }
         }
       ]
